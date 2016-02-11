@@ -105,7 +105,7 @@ class potORF(object):
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
         codonCount = 0
-        if self.strand is True:
+        if self.strand:
             stops = plusStops
         else:
             stops = negStops
@@ -120,7 +120,7 @@ class potORF(object):
     # check to see if a stop codon is within downsteam sequence (upstream if (-) strand)
     def lookDown(self):
         codonCount = 0
-        if self.strand is True:
+        if self.strand:
             stops = plusStops
         else:
             stops = negStops
@@ -137,12 +137,12 @@ class potORF(object):
         if self.upcheck and self.downcheck:
             if self.strand:  # is it a (+) strand?
                 self.RNAcount = readCheck(True, int(self.chrom), int(self.start),
-                                          int(self.start + int(self.downPos[0]) * 3))
+                                          int(self.start + int(self.downPos[0]) * 3) + 2)
                 if self.RNAcount == (None or 0):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), int(self.start),
-                                               int(self.start + int(self.downPos[0]) * 3))
+                                               int(self.start + int(self.downPos[0]) * 3) + 2)
             else:
                 self.RNAcount = readCheck(True, int(self.chrom), int(self.start - int(self.upPos[-1]) * 3),
                                           int(self.start))
@@ -152,12 +152,10 @@ class potORF(object):
                     self.ribocount = readCheck(False, int(self.chrom), int(self.start - int(self.upPos[-1]) * 3),
                                                int(self.start))
 
-
 # Used to iterate potential ORF class instantiation
 def portORF(CHROM, START, END, STRAND):
     portedORF = potORF(CHROM, START, END, STRAND)
     return portedORF
-
 
 # iteratively pulls read count over a given region across all BAMs
 def readCheck(RNAorRIBO, CHROM, START, STOP):
@@ -231,12 +229,10 @@ def ORFSNuper():
                         # orfcount += 1 #use when debugging
                         else:
                             continue
-                            # For debugging
-
-
-# if orfcount >= 15:
-#                        print("orfcount met!")
-#                        break
+                # For debugging
+                # if orfcount >= 15:
+                    #print("orfcount met!")
+                    #break
 
 # Find the potential ORFs
 ORFSNuper()
@@ -250,11 +246,11 @@ pool.join()
 # Using the joined instances of potential ORFs, cleans & coalesces the data for output
 SNuPed = []
 for i in range(len(potORFs)):
-    if potORFs[i].upcheck is True and potORFs[i].downcheck is True:  # does it have an up/downstream stop?
+    if potORFs[i].upcheck and potORFs[i].downcheck:  # does it have an up/downstream stop?
         if potORFs[i].RNAcount == (0 or None):
             continue
         else:
-            if potORFs[i].strand is True:  # is it a (+) strand?
+            if potORFs[i].strand:  # is it a (+) strand?
                 # if there were RNA-seq reads, check for Ribosome profiling reads (translation)
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "+", str(potORFs[i].start),
                                           str(potORFs[i].start + int(potORFs[i].downPos[0]) * 3),
@@ -263,9 +259,9 @@ for i in range(len(potORFs)):
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "-", str(potORFs[i].start),
                                           str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3),
                                           str(potORFs[i].RNAcount), str(potORFs[i].ribocount)])])
-
     else:
         continue
+
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
 m, s = divmod(endTime - startTime, 60)
