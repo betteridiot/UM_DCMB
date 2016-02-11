@@ -101,6 +101,7 @@ class potORF(object):
         self.downPos = []
         self.RNAcount = None
         self.ribocount = None
+        self.length = 0
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
@@ -132,25 +133,25 @@ class potORF(object):
                 self.downPos.extend([codonCount, ])
         return self
 
-    # Looks at all specified BAM files and determine the number of reads found in a given region.
+    # Looks at all specified BAM files and determine the number of reads found in a given region and corrects for length
     def WordCount(self):
         if self.upcheck and self.downcheck:
             if self.strand:  # is it a (+) strand?
-                self.RNAcount = readCheck(True, int(self.chrom), int(self.start),
-                                          int(self.start + int(self.downPos[0]) * 3) + 2)
+                begin, end = int(self.start), int(self.start) + (int(self.downPos[0]) * 3) + 2
+                self.length = end-begin
+                self.RNAcount = readCheck(True, int(self.chrom), begin, end)/self.length
                 if self.RNAcount == (None or 0):
                     pass
                 else:
-                    self.ribocount = readCheck(False, int(self.chrom), int(self.start),
-                                               int(self.start + int(self.downPos[0]) * 3) + 2)
+                    self.ribocount = readCheck(False, int(self.chrom), begin, end)/self.length
             else:
-                self.RNAcount = readCheck(True, int(self.chrom), int(self.start - int(self.upPos[-1]) * 3),
-                                          int(self.start))
+                begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
+                self.length = end-begin
+                self.RNAcount = readCheck(True, int(self.chrom), begin, end)/self.length
                 if self.RNAcount == (None or 0):
                     pass
                 else:
-                    self.ribocount = readCheck(False, int(self.chrom), int(self.start - int(self.upPos[-1]) * 3),
-                                               int(self.start))
+                    self.ribocount = readCheck(False, int(self.chrom), begin, end)/self.length
 
 
 # Used to iterate potential ORF class instantiation
