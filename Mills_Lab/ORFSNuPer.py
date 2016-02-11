@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
 
-import os, gzip, glob, time
+import os
+import gzip
+import glob
+import time
 import argparse
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -10,16 +13,16 @@ Created on Thu Jan 28 10:58:33 2016
 Last Modified on Sat Feb 6 11:11:11 2016
 
 Description: ORFSNuPer uses identified SNPs from the 1000 Genomes Project that meet certain MAF criteria related to a
-            given population. From that SNP, the hg19 reference genome is indexed with regard to the identified SNP and
-            looks to see if a potential ORF was created. IFF an ORF is identified, ORFSNuPer looks upstream and downstream
-            for stop codons. IFF a potential novel reading frame is found, using reads from RNA-seq and ribosomal profiling
-            data, ORFSNuPer will check to see if transcription and/or translation occurs.
+    given population. From that SNP, the hg19 reference genome is indexed with regard to the identified SNP and looks
+    to see if a potential ORF was created. IFF an ORF is identified, ORFSNuPer looks upstream and downstream for stop
+    codons. IFF a potential novel reading frame is found, using reads from RNA-seq and ribosome profiling data,
+    ORFSNuPer will check to see if transcription and/or translation occurs.
 @author: Marcus D. Sherman
 @email: mdsherm@umich.edu
 """
 startTime, startasc = time.time(), time.asctime()
 
-######ARGPARSE START######
+# ARGPARSE START
 parser = argparse.ArgumentParser(description='Finds novel ORFs dues to SNPs')
 # define where the reference sequence is
 parser.add_argument('-r', action='store', dest='ref', help='Directory of reference chromosomes',
@@ -45,14 +48,14 @@ RNADir = args.rna
 outfile = args.output
 reference = args.ref
 threshold = args.threshold
-######ARGPARSE END######
+# ARGPARSE END
 
-###CODONS START###
+# CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
 negStart = "CAT"
 plusStops = ['ATT', 'ATC', 'ACT']
 plusStart = "TAC"
-###CODONS END###
+# CODONS END
 
 # makes lists of all RNA-seq and ribosome profiling BAM files
 RNAbams, Ribobams = [], []
