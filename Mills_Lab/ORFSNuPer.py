@@ -10,7 +10,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 
 """
 Created on Thu Jan 28 10:58:33 2016
-Last Modified on Sat Feb 6 11:11:11 2016
+Last Modified on Sat Feb 11 11:11:11 2016
 
 Description: ORFSNuPer uses identified SNPs from the 1000 Genomes Project that meet certain MAF criteria related to a
     given population. From that SNP, the hg19 reference genome is indexed with regard to the identified SNP and looks
@@ -257,12 +257,14 @@ for i in range(len(potORFs)):
             if potORFs[i].strand:  # is it a (+) strand?
                 # if there were RNA-seq reads, check for Ribosome profiling reads (translation)
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                                          str(potORFs[i].start + int(potORFs[i].downPos[0]) * 3),
-                                          str(potORFs[i].RNAcount), str(potORFs[i].ribocount)])])
+                                          str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2),
+                                          str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
+                                          str(potORFs[i].length)])])
             else:
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "-", str(potORFs[i].start),
                                           str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3),
-                                          str(potORFs[i].RNAcount), str(potORFs[i].ribocount)])])
+                                          str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
+                                          str(potORFs[i].length)])])
     else:
         continue
 
@@ -274,7 +276,8 @@ d, h = divmod(h, 24)
 
 # Print the list of potential ORFs in a tab-delimited file
 with open(outfile, 'w') as f:
-    print >> f, "\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount", "Ribo_ReadCount"])
+    print >> f, "Sequencing read counts normalized by length of ORF"
+    print >> f, "\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount", "Ribo_ReadCount", "ORF_Length"])
     print >> f, "\n".join(SNuPed)
 
 # Write a small report for start time, end time, and elapsed time
