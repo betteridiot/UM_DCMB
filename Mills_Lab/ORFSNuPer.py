@@ -152,10 +152,12 @@ class potORF(object):
                     self.ribocount = readCheck(False, int(self.chrom), int(self.start - int(self.upPos[-1]) * 3),
                                                int(self.start))
 
+
 # Used to iterate potential ORF class instantiation
 def portORF(CHROM, START, END, STRAND):
     portedORF = potORF(CHROM, START, END, STRAND)
     return portedORF
+
 
 # iteratively pulls read count over a given region across all BAMs
 def readCheck(RNAorRIBO, CHROM, START, STOP):
@@ -231,8 +233,9 @@ def ORFSNuper():
                             continue
                 # For debugging
                 # if orfcount >= 15:
-                    #print("orfcount met!")
-                    #break
+                    # print("orfcount met!")
+                    # break
+
 
 # Find the potential ORFs
 ORFSNuper()
