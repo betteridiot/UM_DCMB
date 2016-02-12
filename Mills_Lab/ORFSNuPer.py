@@ -29,7 +29,7 @@ parser.add_argument('-r', action='store', dest='ref', help='Directory of referen
                     default='/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes')
 # define what VCF file you will be working from
 parser.add_argument('-v', action='store', dest='vcf', help='Path/to/<vcf.gz>',
-                    default='/home/mdsherm/Project/YRI_vcfsubsets/chr6.recode.vcf.gz')
+                    default='/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr1.vcf.gz')
 # how many nucleotides do you want to look upstream and downstream of potential ORFs
 parser.add_argument('-t', action='store', dest='threshold', type=int, help='Up/downstream threshold', default=3000)
 # Define your output filename and directory
@@ -41,6 +41,7 @@ parser.add_argument('--ribosome', action='store', dest='ribo', help='Directory o
 # Where are the RNA-seq BAM files
 parser.add_argument('--rna', action='store', dest='rna', help='Directory of RNA BAM files',
                     default='/home/mdsherm/Rotation/RNA_fq/tophat_hg19')
+parser.add_argument('--alternative', action='store_true', help='Use alternative start codon GTG', default='False')
 args = parser.parse_args()
 vcf = args.vcf
 riboDir = args.ribo
@@ -52,9 +53,12 @@ threshold = args.threshold
 
 # CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
-negStart = "CAT"
 plusStops = ['ATT', 'ATC', 'ACT']
-plusStart = "TAC"
+if args.alternative:
+    plusStart, negStart = ['TAC', 'CAC'], ['CAT', 'CAC']
+else:
+    plusStart = "TAC"
+    negStart = "CAT"
 # CODONS END
 
 # makes lists of all RNA-seq and ribosome profiling BAM files
@@ -79,10 +83,13 @@ class potORF(object):
     down: downstream sequence of potential ORF
     downCheck: is there a downstream stop
     up/downPos: how many codons away is a given stop codon (relative to strand)
+    RNAcount/ribocount = how many reads were present in the region of the ORF
+    Homo/heterocount = Sum of the samples that are homozygous or heterozygous for SNP
+    Length = length of the ORF
     """
 
     # instantiate potential ORF object and get upstream and downstream sequences
-    def __init__(self, CHROM, START, END, STRAND):
+    def __init__(self, CHROM, START, END, STRAND, HOMO_ref, HOMO_SNP, HETERO):
         self.chrom = CHROM
         self.start = START
         self.end = END
@@ -95,13 +102,13 @@ class potORF(object):
             reference, self.chrom, self.chrom, int(self.end) + 1, int(self.end) + threshold))
         self.down.readline()
         self.down = ((self.down.read()).rstrip()).upper()
-        self.upcheck = False
-        self.downcheck = False
-        self.upPos = []
-        self.downPos = []
-        self.RNAcount = None
-        self.ribocount = None
-        self.length = 0
+        self.upcheck = self.downcheck = False
+        self.upPos = self.downPos = []
+        self.RNAcount = self.ribocount = None
+        self.homo_ref = HOMO_ref
+        self.homo_SNP = HOMO_SNP
+        self.heterozygous = HETERO
+        self.length = None
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
@@ -144,7 +151,7 @@ class potORF(object):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end)/self.length
-            else:
+            else:  # is it a (-) strand?
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end)/self.length
@@ -155,8 +162,8 @@ class potORF(object):
 
 
 # Used to iterate potential ORF class instantiation
-def portORF(CHROM, START, END, STRAND):
-    portedORF = potORF(CHROM, START, END, STRAND)
+def portORF(CHROM, START, END, STRAND, HOREF, HOSNP, HETERO):
+    portedORF = potORF(CHROM, START, END, STRAND, HOREF, HOSNP, HETERO)
     return portedORF
 
 
@@ -195,12 +202,17 @@ def ORFSNuper():
             else:
                 columns = line.split()
 
+                # Pull out genotype counts for a given row in VCF
+                homozygous_ref = columns.count("0|0")
+                homozygous_SNP = columns.count("1|1")
+                heterozygous = columns.count("1|0")+columns.count("0|1")
+
                 # Check to see if it is a SNP
                 if len(columns[3]) and len(columns[4]) == 1:
 
                     # look for the reference sequence around SNP
                     seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
-                        reference, columns[0], columns[0], int(columns[1]) - 1, int(columns[1]) + 2))
+                        reference, columns[0], columns[0], int(columns[1]) - 2, int(columns[1]) + 2))
                     seq.readline()
                     seq = seq.read().rstrip()
                     seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
@@ -214,24 +226,28 @@ def ORFSNuper():
                             seqPos = int(columns[1]) + posCheck
                         else:
                             pass
-                            # Create potential ORF class instance
-                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, True)])
-                        #                        orfcount += 1 #use when debugging
 
-                        # Check to see if (-) strand ORF is found
-                        if negStart in seq_step:
-                            posCheck = str.find(seq_step, negStart) + 1
-                            if 1 <= posCheck < 3:
-                                seqPos = int(columns[1]) + posCheck
-                            elif posCheck > 3:
-                                seqPos = int(columns[1]) - posCheck
-                            else:
-                                pass
-                            # Create potential ORF class instance
-                            potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, False)])
-                        # orfcount += 1 #use when debugging
+                        # Create potential ORF class instance
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, True,
+                                                homozygous_ref, homozygous_SNP, heterozygous)])
+                        #  += 1 #use when debugging
+
+                    # Check to see if (-) strand ORF is found
+                    if negStart in seq_step:
+                        posCheck = str.find(seq_step, negStart) + 1
+                        if 1 <= posCheck < 3:
+                            seqPos = int(columns[1]) + posCheck
+                        elif posCheck > 3:
+                            seqPos = int(columns[1]) - posCheck
                         else:
-                            continue
+                            pass
+
+                        # Create potential ORF class instance
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, False,
+                                                homozygous_ref, homozygous_SNP, heterozygous)])
+                        # orfcount += 1 #use when debugging
+                else:
+                    continue
                 # For debugging
                 # if orfcount >= 15:
                     # print("orfcount met!")
@@ -259,12 +275,14 @@ for i in range(len(potORFs)):
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "+", str(potORFs[i].start),
                                           str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2),
                                           str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
-                                          str(potORFs[i].length)])])
+                                          str(potORFs[i].length), str(potORFs[i].homo_ref),
+                                          str(potORFs[i].homo_snp), str(potORFs[i].heterozygous)])])
             else:
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "-", str(potORFs[i].start),
                                           str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3),
                                           str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
-                                          str(potORFs[i].length)])])
+                                          str(potORFs[i].length), str(potORFs[i].homo_ref),
+                                          str(potORFs[i].homo_snp), str(potORFs[i].heterozygous)])])
     else:
         continue
 
@@ -277,7 +295,9 @@ d, h = divmod(h, 24)
 # Print the list of potential ORFs in a tab-delimited file
 with open(outfile, 'w') as f:
     print >> f, "Sequencing read counts normalized by length of ORF"
-    print >> f, "\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount", "Ribo_ReadCount", "ORF_Length"])
+    print >> f, "Genotype counts are sums across all samples in VCF"
+    print >> f, "\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount",
+                           "Ribo_ReadCount", "ORF_Length", "0|0", "0|1", "1|1"])
     print >> f, "\n".join(SNuPed)
 
 # Write a small report for start time, end time, and elapsed time
