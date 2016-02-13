@@ -90,10 +90,11 @@ class potORF(object):
     """
 
     # instantiate potential ORF object and get upstream and downstream sequences
-    def __init__(self, CHROM, START, END, STRAND, HOMO_ref, HOMO_SNP, HETERO):
+    def __init__(self, CHROM, START, END, ID, STRAND, HOMO_ref, HOMO_SNP, HETERO):
         self.chrom = CHROM
         self.start = START
         self.end = END
+        self.SNPid = ID
         self.strand = STRAND
         self.up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.start) - threshold, int(self.start) - 1))
@@ -163,8 +164,8 @@ class potORF(object):
 
 
 # Used to iterate potential ORF class instantiation
-def portORF(CHROM, START, END, STRAND, HOREF, HOSNP, HETERO):
-    portedORF = potORF(CHROM, START, END, STRAND, HOREF, HOSNP, HETERO)
+def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO):
+    portedORF = potORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO)
     return portedORF
 
 
@@ -185,7 +186,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         fullcount = float(fullcounter.readline().rstrip())
         WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9),4)])
     if sum(WC) == float(0):
-        return None
+        return "NA"
     else:
         return round(float(sum(WC)) / int(len(WC)), 3)
 
@@ -200,10 +201,18 @@ def ORFSNuper():
         #        while orfcount < 15:  #use when debugging
         for line in VCF:
             # skip all of the lines before content
-            if "#" in line:
+            if "##" in line:
+                continue
+            elif "#CHROM" in line:
+                header = line.split()
                 continue
             else:
                 columns = line.split()
+
+                # Pull out genotype information for the samples per SNP
+                heterozygote = [z for z,genotype in enumerate(header) if genotype in ["1|0" or "0|1"]]
+                horef = [z for z,genotype in enumerate(header) if genotype=="0|0"]
+                hosnp = [z for z,genotype in enumerate(header) if genotype=="1|1"]
 
                 # Pull out genotype counts for a given row in VCF
                 homozygous_ref = columns.count("0|0")
@@ -231,7 +240,7 @@ def ORFSNuper():
                             pass
 
                         # Create potential ORF class instance
-                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, True,
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True,
                                                 homozygous_ref, homozygous_SNP, heterozygous)])
                         #  += 1 #use when debugging
 
@@ -246,7 +255,7 @@ def ORFSNuper():
                             pass
 
                         # Create potential ORF class instance
-                        potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, False,
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False,
                                                 homozygous_ref, homozygous_SNP, heterozygous)])
                         # orfcount += 1 #use when debugging
                 else:
@@ -297,7 +306,7 @@ d, h = divmod(h, 24)
 
 # Print the list of potential ORFs in a tab-delimited file
 with open(outfile, 'w') as f:
-    print >> f, "Sequencing read counts normalized by length of ORF"
+    print >> f, "Sequencing read counts normalized by FPKM"
     print >> f, "Genotype counts are sums across all samples in VCF"
     print >> f, "\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount",
                            "Ribo_ReadCount", "ORF_Length", "0|0", "0|1", "1|1"])
@@ -313,3 +322,4 @@ with open(outfile + ".log", 'w') as f:
     print >> f, ""
     print >> f, "Elapsed time:"
     print >> f, str(d) + " days", str(h) + " hours", str(m) + " minutes", str(round(s, 2)) + " seconds"
+
