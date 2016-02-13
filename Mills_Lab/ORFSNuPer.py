@@ -7,6 +7,7 @@ import glob
 import time
 import argparse
 import math
+import csv
 from multiprocessing.dummy import Pool as ThreadPool
 
 """
@@ -51,6 +52,11 @@ outfile = args.output
 reference = args.ref
 threshold = args.threshold
 # ARGPARSE END
+
+# Adding in ribosome sample name to SRA ID file
+with open('/home/mdsherm/Project/ribosamples') as ribo:
+    reader = csv.reader(ribo, delimiter='\t')
+    ribosamples = list(reader)
 
 # CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
@@ -204,7 +210,7 @@ def ORFSNuper():
             if "##" in line:
                 continue
             elif "#CHROM" in line:
-                header = line.split()
+                header_sample = line.split()
                 continue
             else:
                 columns = line.split()
