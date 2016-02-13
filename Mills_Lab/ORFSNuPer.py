@@ -6,6 +6,7 @@ import gzip
 import glob
 import time
 import argparse
+import math
 from multiprocessing.dummy import Pool as ThreadPool
 
 """
@@ -146,19 +147,19 @@ class potORF(object):
             if self.strand:  # is it a (+) strand?
                 begin, end = int(self.start), int(self.start) + (int(self.downPos[0]) * 3) + 2
                 self.length = end-begin
-                self.RNAcount = readCheck(True, int(self.chrom), begin, end)/self.length
-                if self.RNAcount == (None or 0):
+                self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
+                if self.RNAcount == (None or float(0)):
                     pass
                 else:
-                    self.ribocount = readCheck(False, int(self.chrom), begin, end)/self.length
+                    self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
             else:  # is it a (-) strand?
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
-                self.RNAcount = readCheck(True, int(self.chrom), begin, end)/self.length
-                if self.RNAcount == (None or 0):
+                self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
+                if self.RNAcount == (None or float(0)):
                     pass
                 else:
-                    self.ribocount = readCheck(False, int(self.chrom), begin, end)/self.length
+                    self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
 
 
 # Used to iterate potential ORF class instantiation
@@ -167,8 +168,8 @@ def portORF(CHROM, START, END, STRAND, HOREF, HOSNP, HETERO):
     return portedORF
 
 
-# iteratively pulls read count over a given region across all BAMs
-def readCheck(RNAorRIBO, CHROM, START, STOP):
+# iteratively pulls FPKM over a given region across all BAMs
+def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
     bamlist = []
     WC = []
     typeCheck = RNAorRIBO
@@ -179,9 +180,11 @@ def readCheck(RNAorRIBO, CHROM, START, STOP):
     for entry in bamlist:
         readcount = os.popen('samtools view -q 10 ' + entry + ' chr%d:%d-%d | wc -l'
                              % (int(CHROM), int(START), int(STOP)))
-        count = int(readcount.readline().rstrip())
-        WC.extend([count])
-    if sum(WC) == 0:
+        count = float(readcount.readline().rstrip())
+        fullcounter = os.popen("samtools idxstats " + entry + " |awk '{sum+=$3} END {print sum}'")
+        fullcount = float(fullcounter.readline().rstrip())
+        WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9),4)])
+    if sum(WC) == float(0):
         return None
     else:
         return round(float(sum(WC)) / int(len(WC)), 3)
