@@ -210,9 +210,9 @@ def ORFSNuper():
                 columns = line.split()
 
                 # Pull out genotype information for the samples per SNP
-                heterozygote = [z for z,genotype in enumerate(header) if genotype in ["1|0" or "0|1"]]
-                horef = [z for z,genotype in enumerate(header) if genotype=="0|0"]
-                hosnp = [z for z,genotype in enumerate(header) if genotype=="1|1"]
+                heterozygote = [z for z,genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]]
+                horef = [z for z,genotype in enumerate(columns) if genotype=="0|0"]
+                hosnp = [z for z,genotype in enumerate(columns) if genotype=="1|1"]
 
                 # Pull out genotype counts for a given row in VCF
                 homozygous_ref = columns.count("0|0")
