@@ -58,7 +58,7 @@ threshold = args.threshold
 ribosamples = []
 with open('/home/mdsherm/Project/ribosamples') as ribo:
     reader = csv.reader(ribo, delimiter='\t')
-    ribosamples.extend([row for row in reader]
+    ribosamples.extend([row for row in reader])
 
 # TODO add for loop implementation of alternative start codons
 # CODONS START
