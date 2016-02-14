@@ -241,11 +241,11 @@ def ORFSNuper():
 
                 # Pull out genotype and sample name information for each SNP
                 heterlist = np.asarray([z for z, genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]])
-                heter = [header[i] for index in heterlist]
+                heter = [header[index] for index in heterlist]
                 horeflist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "0|0"])
-                horef = [header[i] for index in horeflist]
+                horef = [header[index] for index in horeflist]
                 hosnplist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "1|1"])
-                hosnp = [header[i] for index in hosnplist]
+                hosnp = [header[index] for index in hosnplist]
 
                 # Pull out genotype counts for a given row in VCF
                 homozygous_ref = columns.count("0|0")
