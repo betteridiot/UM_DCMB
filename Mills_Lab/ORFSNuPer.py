@@ -8,6 +8,7 @@ import time
 import argparse
 import math
 import csv
+import numpy as np
 from multiprocessing.dummy import Pool as ThreadPool
 
 """
@@ -56,7 +57,7 @@ threshold = args.threshold
 # Adding in ribosome sample name to SRA ID file
 with open('/home/mdsherm/Project/ribosamples') as ribo:
     reader = csv.reader(ribo, delimiter='\t')
-    ribosamples = list(reader)
+    ribosamples = np.asarray(reader)
 
 # CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
@@ -77,6 +78,19 @@ os.chdir(riboDir)
 for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
 
+# TODO link sampleFinder to read count
+
+# Gets a list of all the bam files that have the given genotype
+def sampleFinder(LIST, RNAorRibo): # True for RNA, False for Ribosome
+    templist1 = templist2 = []
+    if RNAorRibo:
+        bamlist = RNAbams
+        templist2.extend(str([row for row in bamlist for line in LIST if line in row]))
+    if not RNAorRibo:
+        bamlist = Ribobams
+        templist1.extend(str([line[0] for line in ribo for element in LIST if element in line[1]]))
+        templist2.extend(str([row for row in bamlist for line in templist1 if line in row]))
+    return templist2
 
 class potORF(object):
     """Create an potential ORF object with the following attributes:
@@ -96,7 +110,8 @@ class potORF(object):
     """
 
     # instantiate potential ORF object and get upstream and downstream sequences
-    def __init__(self, CHROM, START, END, ID, STRAND, HOMO_ref, HOMO_SNP, HETERO):
+    def __init__(self, CHROM, START, END, ID, STRAND,
+                 HOMO_ref, HOMO_SNP, HETERO, REFSAMP, SNPSAMP,HETSAMP):
         self.chrom = CHROM
         self.start = START
         self.end = END
@@ -117,6 +132,12 @@ class potORF(object):
         self.homo_SNP = HOMO_SNP
         self.heterozygous = HETERO
         self.length = None
+        self.homorefsamp, self.homosnpsamp, self.hetsamp = REFSAMP, SNPSAMP, HETSAMP
+        self.riboref = sampleFinder(self.homorefsamp, False)
+        self.ribosnp = sampleFinder(self.homosnpsamp, False)
+        self.hetsamp = sampleFinder(self.hetsamp, False)
+
+
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
@@ -170,27 +191,30 @@ class potORF(object):
 
 
 # Used to iterate potential ORF class instantiation
-def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO):
-    portedORF = potORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO)
+def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO, REFSAMP, SNPSAMP, HETSAMP):
+    portedORF = potORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO,
+                       REFSAMP, SNPSAMP, HETSAMP)
     return portedORF
 
 
 # iteratively pulls FPKM over a given region across all BAMs
-def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
+def readCheck(RNAorRIBOorSUBSET, CHROM, START, STOP, LENGTH, optDir=""):
     bamlist = []
     WC = []
-    typeCheck = RNAorRIBO
+    typeCheck = RNAorRIBOorSUBSET
     if typeCheck:  # True = RNA-seq, False = Ribosome profiling
         bamlist = RNAbams
-    elif not typeCheck:
+    elif typeCheck is False:
         bamlist = Ribobams
+    elif typeCheck is None:
+        bamlist = optDir
     for entry in bamlist:
         readcount = os.popen('samtools view -q 10 ' + entry + ' chr%d:%d-%d | wc -l'
                              % (int(CHROM), int(START), int(STOP)))
         count = float(readcount.readline().rstrip())
         fullcounter = os.popen("samtools idxstats " + entry + " |awk '{sum+=$3} END {print sum}'")
         fullcount = float(fullcounter.readline().rstrip())
-        WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9),4)])
+        WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
     if sum(WC) == float(0):
         return "NA"
     else:
@@ -210,15 +234,18 @@ def ORFSNuper():
             if "##" in line:
                 continue
             elif "#CHROM" in line:
-                header_sample = line.split()
+                header = line.split()
                 continue
             else:
                 columns = line.split()
 
-                # Pull out genotype information for the samples per SNP
-                heterozygote = [z for z,genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]]
-                horef = [z for z,genotype in enumerate(columns) if genotype=="0|0"]
-                hosnp = [z for z,genotype in enumerate(columns) if genotype=="1|1"]
+                # Pull out genotype and sample name information for each SNP
+                heterlist = np.asarray([z for z, genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]])
+                heter = [header[i] for index in heterlist]
+                horeflist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "0|0"])
+                horef = [header[i] for index in horeflist]
+                hosnplist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "1|1"])
+                hosnp = [header[i] for index in hosnplist]
 
                 # Pull out genotype counts for a given row in VCF
                 homozygous_ref = columns.count("0|0")
@@ -247,7 +274,8 @@ def ORFSNuper():
 
                         # Create potential ORF class instance
                         potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True,
-                                                homozygous_ref, homozygous_SNP, heterozygous)])
+                                                homozygous_ref, homozygous_SNP, heterozygous,
+                                                horef, hosnp, heter)])
                         #  += 1 #use when debugging
 
                     # Check to see if (-) strand ORF is found
@@ -262,7 +290,8 @@ def ORFSNuper():
 
                         # Create potential ORF class instance
                         potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False,
-                                                homozygous_ref, homozygous_SNP, heterozygous)])
+                                                homozygous_ref, homozygous_SNP, heterozygous,
+                                                horef, hosnp, heter)])
                         # orfcount += 1 #use when debugging
                 else:
                     continue
@@ -328,4 +357,3 @@ with open(outfile + ".log", 'w') as f:
     print >> f, ""
     print >> f, "Elapsed time:"
     print >> f, str(d) + " days", str(h) + " hours", str(m) + " minutes", str(round(s, 2)) + " seconds"
-
