@@ -296,10 +296,10 @@ def ORFSNuper():
                             orfcount += 1 #use when debugging
                     else:
                         continue
-                # For debugging
-                 if orfcount >= 15:
-                    print("orfcount met!")
-                    break
+            # For debugging
+             if orfcount >= 15:
+                print("orfcount met!")
+                break
 
 
 # Find the potential ORFs
