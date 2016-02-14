@@ -297,7 +297,7 @@ def ORFSNuper():
                     else:
                         continue
             # For debugging
-             if orfcount >= 15:
+            if orfcount >= 15:
                 print("orfcount met!")
                 break
 
