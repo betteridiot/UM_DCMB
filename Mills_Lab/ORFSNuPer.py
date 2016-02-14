@@ -55,10 +55,12 @@ threshold = args.threshold
 # ARGPARSE END
 
 # Adding in ribosome sample name to SRA ID file
+ribosamples = []
 with open('/home/mdsherm/Project/ribosamples') as ribo:
     reader = csv.reader(ribo, delimiter='\t')
-    ribosamples = np.asarray(reader)
+    ribosamples.extend([row for row in reader]
 
+# TODO add for loop implementation of alternative start codons
 # CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
 plusStops = ['ATT', 'ATC', 'ACT']
@@ -92,6 +94,7 @@ def sampleFinder(LIST, RNAorRibo): # True for RNA, False for Ribosome
         templist2.extend(str([row for row in bamlist for line in templist1 if line in row]))
     return templist2
 
+
 class potORF(object):
     """Create an potential ORF object with the following attributes:
 
@@ -111,7 +114,7 @@ class potORF(object):
 
     # instantiate potential ORF object and get upstream and downstream sequences
     def __init__(self, CHROM, START, END, ID, STRAND,
-                 HOMO_ref, HOMO_SNP, HETERO, REFSAMP, SNPSAMP,HETSAMP):
+                 HOMO_ref, HOMO_SNP, HETERO, REFSAMP, SNPSAMP, HETSAMP):
         self.chrom = CHROM
         self.start = START
         self.end = END
@@ -136,8 +139,6 @@ class potORF(object):
         self.riboref = sampleFinder(self.homorefsamp, False)
         self.ribosnp = sampleFinder(self.homosnpsamp, False)
         self.hetsamp = sampleFinder(self.hetsamp, False)
-
-
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
