@@ -32,7 +32,7 @@ parser.add_argument('-r', action='store', dest='ref', help='Directory of referen
                     default='/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes')
 # define what VCF file you will be working from
 parser.add_argument('-v', action='store', dest='vcf', help='Path/to/<vcf.gz>',
-                    default='/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr1.vcf.gz')
+                    default='/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz')
 # how many nucleotides do you want to look upstream and downstream of potential ORFs
 parser.add_argument('-t', action='store', dest='threshold', type=int, help='Up/downstream threshold', default=3000)
 # Define your output filename and directory
