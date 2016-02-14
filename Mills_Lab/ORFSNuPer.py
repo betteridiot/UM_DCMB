@@ -87,11 +87,11 @@ def sampleFinder(LIST, RNAorRibo): # True for RNA, False for Ribosome
     templist1 = templist2 = []
     if RNAorRibo:
         bamlist = RNAbams
-        templist2.extend(str([row for row in bamlist for line in LIST if line in row]))
-    if not RNAorRibo:
+        templist2.extend([row for row in bamlist for line in LIST if line in row])
+    elif not RNAorRibo:
         bamlist = Ribobams
-        templist1.extend(str([line[0] for line in ribosamples for element in LIST if element in line[1]]))
-        templist2.extend(str([row for row in bamlist for line in templist1 if line in row]))
+        templist1.extend([line[0] for line in ribosamples for element in LIST if element in line[1]])
+        templist2.extend([row for row in bamlist for line in templist1 if line in row])
     return templist2
 
 
@@ -236,7 +236,6 @@ def ORFSNuper():
                     continue
                 elif "#CHROM" in line:
                     header = line.split()
-                    continue
                 else:
                     columns = line.split()
 
