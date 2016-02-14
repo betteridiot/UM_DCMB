@@ -88,7 +88,7 @@ def sampleFinder(LIST, RNAorRibo):  # True for RNA, False for Ribosome
     templist1, templist2 = [], []
     if RNAorRibo:
         bamlist = RNAbams
-        templist2.extend([row for row in bamlist for line in LIST if line in row])
+        templist2.extend([bamlist[i] for i in range(len(bamlist)) for line in LIST if line in bamlist[i]])
     elif not RNAorRibo:
         bamlist = Ribobams
         templist1.extend([line[0] for line in ribosamples for element in LIST if element in line[1]])
