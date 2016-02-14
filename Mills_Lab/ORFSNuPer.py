@@ -56,7 +56,7 @@ threshold = args.threshold
 
 # Adding in ribosome sample name to SRA ID file
 ribosamples = []
-with open('/home/mdsherm/Project/ribosamples') as ribo:
+with open('/home/mdsherm/Project/ribosamplescross') as ribo:
     reader = csv.reader(ribo, delimiter='\t')
     ribosamples.extend([row for row in reader])
 
@@ -82,16 +82,17 @@ for dir, _, _ in os.walk(os.getcwd()):
 
 # TODO link sampleFinder to read count
 
+
 # Gets a list of all the bam files that have the given genotype
-def sampleFinder(LIST, RNAorRibo): # True for RNA, False for Ribosome
-    templist1 = templist2 = []
+def sampleFinder(LIST, RNAorRibo):  # True for RNA, False for Ribosome
+    templist1, templist2 = [], []
     if RNAorRibo:
         bamlist = RNAbams
         templist2.extend([row for row in bamlist for line in LIST if line in row])
     elif not RNAorRibo:
         bamlist = Ribobams
         templist1.extend([line[0] for line in ribosamples for element in LIST if element in line[1]])
-        templist2.extend([row for row in bamlist for line in templist1 if line in row])
+        templist2.extend([bamlist[i] for i in range(len(bamlist)) for line in templist1 if line in bamlist[i]])
     return templist2
 
 
@@ -128,9 +129,9 @@ class potORF(object):
             reference, self.chrom, self.chrom, int(self.end) + 1, int(self.end) + threshold))
         self.down.readline()
         self.down = ((self.down.read()).rstrip()).upper()
-        self.upcheck = self.downcheck = False
-        self.upPos = self.downPos = []
-        self.RNAcount = self.ribocount = None
+        self.upcheck, self.downcheck = False, False
+        self.upPos, self.downPos = [], []
+        self.RNAcount, self.ribocount = None, None
         self.homo_ref = HOMO_ref
         self.homo_SNP = HOMO_SNP
         self.heterozygous = HETERO
@@ -200,8 +201,7 @@ def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO, REFSAMP, SNPSAM
 
 # iteratively pulls FPKM over a given region across all BAMs
 def readCheck(RNAorRIBOorSUBSET, CHROM, START, STOP, LENGTH, optDir=""):
-    bamlist = []
-    WC = []
+    bamlist, WC = [], []
     typeCheck = RNAorRIBOorSUBSET
     if typeCheck:  # True = RNA-seq, False = Ribosome profiling
         bamlist = RNAbams
@@ -226,10 +226,9 @@ def readCheck(RNAorRIBOorSUBSET, CHROM, START, STOP, LENGTH, optDir=""):
 def ORFSNuper():
     global potORFs
     potORFs = []
-    global orfcount
-    orfcount = 0 #use when debugging
+    orfcount = 0  # use when debugging
     with gzip.open(vcf, 'rt')as VCF:
-        while orfcount < 15:  #use when debugging
+        while orfcount < 15:   # use when debugging
             for line in VCF:
                 # skip all of the lines before content
                 if "##" in line:
@@ -255,7 +254,7 @@ def ORFSNuper():
                     # Check to see if it is a SNP
                     if len(columns[3]) and len(columns[4]) == 1:
 
-                        # look for the reference sequence around SNP
+                        # look for the reference sequence around SNP9
                         seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
                             reference, columns[0], columns[0], int(columns[1]) - 2, int(columns[1]) + 2))
                         seq.readline()
@@ -276,7 +275,7 @@ def ORFSNuper():
                             potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True,
                                                     homozygous_ref, homozygous_SNP, heterozygous,
                                                     horef, hosnp, heter)])
-                            orfcount += 1 #use when debugging
+                            orfcount += 1  # use when debugging
 
                         # Check to see if (-) strand ORF is found
                         if negStart in seq_step:
@@ -292,7 +291,7 @@ def ORFSNuper():
                             potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False,
                                                     homozygous_ref, homozygous_SNP, heterozygous,
                                                     horef, hosnp, heter)])
-                            orfcount += 1 #use when debugging
+                            orfcount += 1  # use when debugging
                     else:
                         continue
             # For debugging
