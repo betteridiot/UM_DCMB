@@ -62,7 +62,7 @@ with open('/home/mdsherm/Project/ribosamples') as ribo:
 # CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
 plusStops = ['ATT', 'ATC', 'ACT']
-if args.alternative:
+if args.alternative is True:
     plusStart, negStart = ['TAC', 'CAC'], ['CAT', 'CAC']
 else:
     plusStart = "TAC"
