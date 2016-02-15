@@ -138,11 +138,14 @@ class potORF(object):
         self.length = None
         self.homorefsamp, self.homosnpsamp, self.hetsamp = REFSAMP, SNPSAMP, HETSAMP
         # Produce a list of bams that present with a given genotype for a given SNP
+        self.RNArefsamp = sampleFinder(self.homorefsamp, True)
+        self.RNAsnpsamp = sampleFinder(self.homosnpsamp, True)
+        self.RNAhetsamp = sampleFinder(self.hetsamp, True)
+        self.RIBOrefsamp = sampleFinder(self.homorefsamp, False)
+        self.RIBOsnpsamp = sampleFinder(self.homosnpsamp, False)
+        self.RIBOhetsamp = sampleFinder(self.hetsamp, False)
         self.RNArefcount, self.RNAsnpcount, self.RNAhetcount = [], [], []
         self.RIBOrefcount, self.RIBOsnpcount, self.RIBOhetcount = [], [], []
-        self.refsamp = sampleFinder(self.homorefsamp, False)
-        self.snpsamp = sampleFinder(self.homosnpsamp, False)
-        self.hetsamp = sampleFinder(self.hetsamp, False)
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
@@ -185,14 +188,22 @@ class potORF(object):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
+
             else:  # is it a (-) strand?
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
+                self.RNArefcount = genoCheck(self.RNArefsamp, int(self.chrom), begin, end, self.length)
+                self.RNAsnpcount = genoCheck(self.RNAsnpsamp, int(self.chrom), begin, end, self.length)
+                self.RNAhetcount = genoCheck(self.RNAhetsamp, int(self.chrom), begin, end, self.length)
                 if self.RNAcount == (None or float(0)):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
+                    self.RIBOrefcount = genoCheck(self.RIBOrefsamp, int(self.chrom), begin, end, self.length)
+                    self.RIBOsnpcount = genoCheck(self.RIBOsnpsamp, int(self.chrom), begin, end, self.length)
+                    self.RIBOhetcount = genoCheck(self.RIBOhetsamp, int(self.chrom), begin, end, self.length)
+
 
 
 
@@ -239,6 +250,7 @@ def genoCheck(DIR, CHROM, START, STOP, LENGTH):
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     global potORFs
+    global samplenames
     potORFs = []
     orfcount = 0  # use when debugging
     with gzip.open(vcf, 'rt')as VCF:
@@ -249,6 +261,7 @@ def ORFSNuper():
                     continue
                 elif "#CHROM" in line:
                     header = line.split()
+                    samplenames = header[9:]
                 else:
                     columns = line.split()
 
@@ -346,6 +359,38 @@ for i in range(len(potORFs)):
     else:
         continue
 
+SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet = [], [], []
+SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet = [], [], []
+for i in range(len(potORFs)):
+    if potORFs[i].upcheck and potORFs[i].downcheck:
+        if potORFs[i].strand:
+            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RNArefcount)])
+            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RNAsnpcount)])
+            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RNAhetcount)])
+            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RIBOrefcount)])
+            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RIBOsnpcount)])
+            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RIBOhetcount)])
+        else:
+            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RNArefcount)])
+            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RNAsnpcount)])
+            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RNAhetcount)])
+            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RIBOrefcount)])
+            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RIBOsnpcount)])
+            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RIBOhetcount)])
+
+
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
 m, s = divmod(endTime - startTime, 60)
@@ -359,6 +404,15 @@ with open(outfile, 'w') as f:
     print >> f, "\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount",
                            "Ribo_ReadCount", "ORF_Length", "0|0", "0|1", "1|1"])
     print >> f, "\n".join(SNuPed)
+
+outfilelist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
+outfileext = ["_RNAhoref", "_RNAhosnp", "_RNAhet", "_RIBOhoref", "_RIBOhosnp", "_RIBOhet"]
+for entry, ext in outfilelist, outfileext:
+    with open(outfile+outfileext[ext], 'w') as g:
+        print >> g, "Sequencing read counts normalized by FPKM"
+        print >> g, '\t'.join(["SNP_ID", "CHROM", "START", "STOP"])+"\t"+'\t'.join(samplenames)
+        print >> g, '\n'.join(outfilelist)
+
 
 # Write a small report for start time, end time, and elapsed time
 with open(outfile + ".log", 'w') as f:
