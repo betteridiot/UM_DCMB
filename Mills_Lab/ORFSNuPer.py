@@ -251,7 +251,7 @@ def genoCheck(DIR, CHROM, START, STOP, LENGTH):
 def ORFSNuper():
     global potORFs
     global samplenames
-    # potORFs = []
+    potORFs = []
     # orfcount = 0  # use when debugging
     with gzip.open(vcf, 'rt')as VCF:
         # while orfcount < 15:   # use when debugging
