@@ -411,7 +411,7 @@ for entry, ext in outfilelist, outfileext:
     with open(outfile+outfileext[ext], 'w') as g:
         print >> g, "Sequencing read counts normalized by FPKM"
         print >> g, '\t'.join(["SNP_ID", "CHROM", "START", "STOP"])+"\t"+'\t'.join(samplenames)
-        print >> g, '\n'.join(outfilelist)
+        print >> g, '\n'.join(entry)
 
 
 # Write a small report for start time, end time, and elapsed time
