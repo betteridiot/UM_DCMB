@@ -205,8 +205,6 @@ class potORF(object):
                     self.RIBOhetcount = genoCheck(self.RIBOhetsamp, int(self.chrom), begin, end, self.length)
 
 
-
-
 # Used to iterate potential ORF class instantiation
 def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO, REFSAMP, SNPSAMP, HETSAMP):
     portedORF = potORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO,
@@ -233,6 +231,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         return "NA"
     else:
         return round(float(sum(WC)) / int(len(WC)), 3)
+
 
 def genoCheck(DIR, CHROM, START, STOP, LENGTH):
     bamlist, WC = [], []
@@ -365,31 +364,43 @@ SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet = [], [], []
 for i in range(len(potORFs)):
     if potORFs[i].upcheck and potORFs[i].downcheck:
         if potORFs[i].strand:
-            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RNArefcount)])
-            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RNAsnpcount)])
-            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RNAhetcount)])
-            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RIBOrefcount)])
-            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RIBOsnpcount)])
-            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2)])+"\t"+'\t'.join(potORFs[i].RIBOhetcount)])
+            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+                                               str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
+                                    '\t'.join(potORFs[i].RNArefcount)])
+            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+                                               str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
+                                    '\t'.join(potORFs[i].RNAsnpcount)])
+            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+                                             str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
+                                  '\t'.join(potORFs[i].RNAhetcount)])
+            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+                                                str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
+                                     '\t'.join(potORFs[i].RIBOrefcount)])
+            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+                                                str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
+                                     '\t'.join(potORFs[i].RIBOsnpcount)])
+            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+                                              str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
+                                   '\t'.join(potORFs[i].RIBOhetcount)])
         else:
-            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RNArefcount)])
-            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RNAsnpcount)])
-            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RNAhetcount)])
-            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RIBOrefcount)])
-            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RIBOsnpcount)])
-            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)])+"\t"+'\t'.join(potORFs[i].RIBOhetcount)])
+            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
+                                    '\t'.join(potORFs[i].RNArefcount)])
+            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
+                                    '\t'.join(potORFs[i].RNAsnpcount)])
+            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
+                                  '\t'.join(potORFs[i].RNAhetcount)])
+            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
+                                     '\t'.join(potORFs[i].RIBOrefcount)])
+            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
+                                     '\t'.join(potORFs[i].RIBOsnpcount)])
+            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
+                                   '\t'.join(potORFs[i].RIBOhetcount)])
 
 
 # find out how long the process took
@@ -412,7 +423,7 @@ outfileext = ["_RNAhoref", "_RNAhosnp", "_RNAhet", "_RIBOhoref", "_RIBOhosnp", "
 for entry, ext in outfilelist, outfileext:
     with open(outfile+outfileext[ext], 'w') as g:
         print >> g, "Sequencing read counts normalized by FPKM"
-        print >> g, '\t'.join(["SNP_ID", "CHROM", "START", "STOP"])+"\t"+'\t'.join(samplenames)
+        print >> g, '\t'.join(["SNP_ID", "CHROM", "STRAND", "START", "STOP"])+"\t"+'\t'.join(samplenames)
         print >> g, '\n'.join(entry)
 
 
