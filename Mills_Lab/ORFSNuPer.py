@@ -251,80 +251,80 @@ def genoCheck(DIR, CHROM, START, STOP, LENGTH):
 def ORFSNuper():
     global potORFs
     global samplenames
-    potORFs = []
-    orfcount = 0  # use when debugging
+    # potORFs = []
+    # orfcount = 0  # use when debugging
     with gzip.open(vcf, 'rt')as VCF:
-        while orfcount < 15:   # use when debugging
-            for line in VCF:
-                # skip all of the lines before content
-                if "##" in line:
-                    continue
-                elif "#CHROM" in line:
-                    header = line.split()
-                    samplenames = header[9:]
+        # while orfcount < 15:   # use when debugging
+        for line in VCF:
+            # skip all of the lines before content
+            if "##" in line:
+                continue
+            elif "#CHROM" in line:
+                header = line.split()
+                samplenames = header[9:]
+            else:
+                columns = line.split()
+
+                # Pull out genotype and sample name information for each SNP
+                heterlist = np.asarray([z for z, genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]])
+                heter = [header[index] for index in heterlist]
+                horeflist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "0|0"])
+                horef = [header[index] for index in horeflist]
+                hosnplist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "1|1"])
+                hosnp = [header[index] for index in hosnplist]
+
+                # Pull out genotype counts for a given row in VCF
+                homozygous_ref = columns.count("0|0")
+                homozygous_SNP = columns.count("1|1")
+                heterozygous = columns.count("1|0")+columns.count("0|1")
+
+                # Check to see if it is a SNP
+                if len(columns[3]) and len(columns[4]) == 1:
+
+                    # look for the reference sequence around SNP
+                    seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
+                        reference, columns[0], columns[0], int(columns[1]) - 2, int(columns[1]) + 2))
+                    seq.readline()
+                    seq = seq.read().rstrip()
+                    seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
+
+                    # Check to see if (+) strand ORF is found
+                    if plusStart in seq_step:
+                        posCheck = str.find(seq_step, plusStart) + 1
+                        if 1 <= posCheck < 3:
+                            seqPos = int(columns[1]) - posCheck
+                        elif posCheck > 3:
+                            seqPos = int(columns[1]) + posCheck
+                        else:
+                            pass
+
+                        # Create potential ORF class instance
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True,
+                                                homozygous_ref, homozygous_SNP, heterozygous,
+                                                horef, hosnp, heter)])
+                        # orfcount += 1  # use when debugging
+
+                    # Check to see if (-) strand ORF is found
+                    if negStart in seq_step:
+                        posCheck = str.find(seq_step, negStart) + 1
+                        if 1 <= posCheck < 3:
+                            seqPos = int(columns[1]) + posCheck
+                        elif posCheck > 3:
+                            seqPos = int(columns[1]) - posCheck
+                        else:
+                            pass
+
+                        # Create potential ORF class instance
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False,
+                                                homozygous_ref, homozygous_SNP, heterozygous,
+                                                horef, hosnp, heter)])
+                        # orfcount += 1  # use when debugging
                 else:
-                    columns = line.split()
-
-                    # Pull out genotype and sample name information for each SNP
-                    heterlist = np.asarray([z for z, genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]])
-                    heter = [header[index] for index in heterlist]
-                    horeflist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "0|0"])
-                    horef = [header[index] for index in horeflist]
-                    hosnplist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "1|1"])
-                    hosnp = [header[index] for index in hosnplist]
-
-                    # Pull out genotype counts for a given row in VCF
-                    homozygous_ref = columns.count("0|0")
-                    homozygous_SNP = columns.count("1|1")
-                    heterozygous = columns.count("1|0")+columns.count("0|1")
-
-                    # Check to see if it is a SNP
-                    if len(columns[3]) and len(columns[4]) == 1:
-
-                        # look for the reference sequence around SNP9
-                        seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
-                            reference, columns[0], columns[0], int(columns[1]) - 2, int(columns[1]) + 2))
-                        seq.readline()
-                        seq = seq.read().rstrip()
-                        seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
-
-                        # Check to see if (+) strand ORF is found
-                        if plusStart in seq_step:
-                            posCheck = str.find(seq_step, plusStart) + 1
-                            if 1 <= posCheck < 3:
-                                seqPos = int(columns[1]) - posCheck
-                            elif posCheck > 3:
-                                seqPos = int(columns[1]) + posCheck
-                            else:
-                                pass
-
-                            # Create potential ORF class instance
-                            potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True,
-                                                    homozygous_ref, homozygous_SNP, heterozygous,
-                                                    horef, hosnp, heter)])
-                            orfcount += 1  # use when debugging
-
-                        # Check to see if (-) strand ORF is found
-                        if negStart in seq_step:
-                            posCheck = str.find(seq_step, negStart) + 1
-                            if 1 <= posCheck < 3:
-                                seqPos = int(columns[1]) + posCheck
-                            elif posCheck > 3:
-                                seqPos = int(columns[1]) - posCheck
-                            else:
-                                pass
-
-                            # Create potential ORF class instance
-                            potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False,
-                                                    homozygous_ref, homozygous_SNP, heterozygous,
-                                                    horef, hosnp, heter)])
-                            orfcount += 1  # use when debugging
-                    else:
-                        continue
+                    continue
             # For debugging
-            if orfcount >= 15:
-                print("orfcount met!")
-                break
+            # if orfcount >= 15:
+            #     print("orfcount met!")
+            #     break
 
 
 # Find the potential ORFs
