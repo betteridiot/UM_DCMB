@@ -13,7 +13,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 
 """
 Created on Thu Jan 28 10:58:33 2016
-Last Modified on Sat Feb 11 11:11:11 2016
+Last Modified on Sat Feb 15 12:22 2016
 
 Description: ORFSNuPer uses identified SNPs from the 1000 Genomes Project that meet certain MAF criteria related to a
     given population. From that SNP, the hg19 reference genome is indexed with regard to the identified SNP and looks
@@ -359,6 +359,7 @@ for i in range(len(potORFs)):
     else:
         continue
 
+# Creates a list of the SNP and a sample's FPKM given its genotype
 SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet = [], [], []
 SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet = [], [], []
 for i in range(len(potORFs)):
@@ -405,6 +406,7 @@ with open(outfile, 'w') as f:
                            "Ribo_ReadCount", "ORF_Length", "0|0", "0|1", "1|1"])
     print >> f, "\n".join(SNuPed)
 
+# Writes a tab-delimited file of the SNP versus genotype FPKM list
 outfilelist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
 outfileext = ["_RNAhoref", "_RNAhosnp", "_RNAhet", "_RIBOhoref", "_RIBOhosnp", "_RIBOhet"]
 for entry, ext in outfilelist, outfileext:
