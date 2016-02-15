@@ -184,7 +184,7 @@ class potORF(object):
                 begin, end = int(self.start), int(self.start) + (int(self.downPos[0]) * 3) + 2
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
-                if self.RNAcount == (None or float(0)):
+                if self.RNAcount == ("NA" or float(0)):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
@@ -196,7 +196,7 @@ class potORF(object):
                 self.RNArefcount = genoCheck(self.RNArefsamp, int(self.chrom), begin, end, self.length)
                 self.RNAsnpcount = genoCheck(self.RNAsnpsamp, int(self.chrom), begin, end, self.length)
                 self.RNAhetcount = genoCheck(self.RNAhetsamp, int(self.chrom), begin, end, self.length)
-                if self.RNAcount == (None or float(0)):
+                if self.RNAcount == ("NA" or float(0)):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
