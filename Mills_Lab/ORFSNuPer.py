@@ -137,8 +137,11 @@ class potORF(object):
         self.heterozygous = HETERO
         self.length = None
         self.homorefsamp, self.homosnpsamp, self.hetsamp = REFSAMP, SNPSAMP, HETSAMP
-        self.riboref = sampleFinder(self.homorefsamp, False)
-        self.ribosnp = sampleFinder(self.homosnpsamp, False)
+        # Produce a list of bams that present with a given genotype for a given SNP
+        self.RNArefcount, self.RNAsnpcount, self.RNAhetcount = [], [], []
+        self.RIBOrefcount, self.RIBOsnpcount, self.RIBOhetcount = [], [], []
+        self.refsamp = sampleFinder(self.homorefsamp, False)
+        self.snpsamp = sampleFinder(self.homosnpsamp, False)
         self.hetsamp = sampleFinder(self.hetsamp, False)
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
@@ -192,6 +195,7 @@ class potORF(object):
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
 
 
+
 # Used to iterate potential ORF class instantiation
 def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO, REFSAMP, SNPSAMP, HETSAMP):
     portedORF = potORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO,
@@ -200,15 +204,13 @@ def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO, REFSAMP, SNPSAM
 
 
 # iteratively pulls FPKM over a given region across all BAMs
-def readCheck(RNAorRIBOorSUBSET, CHROM, START, STOP, LENGTH, optDir=""):
+def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
     bamlist, WC = [], []
-    typeCheck = RNAorRIBOorSUBSET
+    typeCheck = RNAorRIBO
     if typeCheck:  # True = RNA-seq, False = Ribosome profiling
         bamlist = RNAbams
     elif typeCheck is False:
         bamlist = Ribobams
-    elif typeCheck is None:
-        bamlist = optDir
     for entry in bamlist:
         readcount = os.popen('samtools view -q 10 ' + entry + ' chr%d:%d-%d | wc -l'
                              % (int(CHROM), int(START), int(STOP)))
@@ -220,6 +222,18 @@ def readCheck(RNAorRIBOorSUBSET, CHROM, START, STOP, LENGTH, optDir=""):
         return "NA"
     else:
         return round(float(sum(WC)) / int(len(WC)), 3)
+
+def genoCheck(DIR, CHROM, START, STOP, LENGTH):
+    bamlist, WC = [], []
+    bamlist = DIR
+    for entry in bamlist:
+        readcount = os.popen('samtools view -q 10 ' + entry + ' chr%d:%d-%d | wc -l'
+                             % (int(CHROM), int(START), int(STOP)))
+        count = float(readcount.readline().rstrip())
+        fullcounter = os.popen("samtools idxstats " + entry + " |awk '{sum+=$3} END {print sum}'")
+        fullcount = float(fullcounter.readline().rstrip())
+        WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
+    return WC
 
 
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
