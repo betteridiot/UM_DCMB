@@ -73,7 +73,7 @@ else:
 
 # makes lists of all RNA-seq and ribosome profiling BAM files
 RNAbams, Ribobams = [], []
-
+RNAbams_total, Ribobams_total = [], []
 os.chdir(RNADir)
 for dir, _, _ in os.walk(os.getcwd()):
     RNAbams.extend(glob.glob(os.path.join(dir, "*hits.bam")))
@@ -81,19 +81,17 @@ os.chdir(riboDir)
 for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
 
-RNAtotal_reads, RIBOtotal_reads = [], []
-bamDIRs = [RNAtotal_reads, RIBOtotal_reads]
-def read_indexer(DIR):
-    for level in DIR:
-        fullcounter = os.popen("samtools idxstats " + level + " |awk '{sum+=$3} END {print sum}'")
+
+# Finds total reads per bam file
+def read_indexer(fileDIR, LIST):
+    for item in fileDIR:
+        fullcounter = os.popen("samtools idxstats " + item + " |awk '{sum+=$3} END {print sum}'")
         fullcount = float(fullcounter.readline().rstrip())
-        return [level, fullcount]
-
-RNAtotal_reads = read_indexer(RNAbams)
-RIBOtotal_reads = read_indexer(Ribobams)
+        LIST.extend([[item, fullcount]])
 
 
-# TODO link sampleFinder to read count
+read_indexer(RNAbams, RNAbams_total)
+read_indexer(Ribobams, Ribobams_total)
 
 
 # Gets a list of all the bam files that have the given genotype
@@ -250,12 +248,10 @@ def genoCheck(DIR, CHROM, START, STOP, LENGTH):
     bamlist, WC = [], []
     bamlist = DIR
     for level in bamlist:
-        readcount = os.popen('samtools view -q 10 ' + level + ' chr%d:%d-%d | wc -l'
+        readcount = os.popen('samtools view -q 10 ' + level[0] + ' chr%d:%d-%d | wc -l'
                              % (int(CHROM), int(START), int(STOP)))
         count = float(readcount.readline().rstrip())
-        fullcounter = os.popen("samtools idxstats " + level + " |awk '{sum+=$3} END {print sum}'")
-        fullcount = float(fullcounter.readline().rstrip())
-        WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
+        WC.extend([round((count/(LENGTH*level[1]))*math.pow(10, 9), 4)])
     return WC
 
 
