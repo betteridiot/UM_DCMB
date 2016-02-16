@@ -82,7 +82,7 @@ for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
 
 
-# Finds total reads per bam file
+# Finds total reads per bam file for FPKM
 def read_indexer(fileDIR, LIST):
     for item in fileDIR:
         fullcounter = os.popen("samtools idxstats " + item + " |awk '{sum+=$3} END {print sum}'")
@@ -420,4 +420,3 @@ with open(outfile + ".log", 'w') as f:
     f.write('\n')
     f.write("Elapsed time:")
     print >> f, str(d) + " days", str(h) + " hours", str(m) + " minutes", str(round(s, 2)) + " seconds"
-    f.write('\n')
