@@ -60,7 +60,7 @@ with open('/home/mdsherm/Project/ribosamplescross') as ribo:
     reader = csv.reader(ribo, delimiter='\t')
     ribosamples.extend([row for row in reader])
 
-# TODO add for loop implementation of alternative start codons
+
 # CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
 plusStops = ['ATT', 'ATC', 'ACT']
@@ -73,12 +73,25 @@ else:
 
 # makes lists of all RNA-seq and ribosome profiling BAM files
 RNAbams, Ribobams = [], []
+
 os.chdir(RNADir)
 for dir, _, _ in os.walk(os.getcwd()):
     RNAbams.extend(glob.glob(os.path.join(dir, "*hits.bam")))
 os.chdir(riboDir)
 for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
+
+RNAtotal_reads, RIBOtotal_reads = [], []
+bamDIRs = [RNAtotal_reads, RIBOtotal_reads]
+def read_indexer(DIR):
+    for level in DIR:
+        fullcounter = os.popen("samtools idxstats " + level + " |awk '{sum+=$3} END {print sum}'")
+        fullcount = float(fullcounter.readline().rstrip())
+        return [level, fullcount]
+
+RNAtotal_reads = read_indexer(RNAbams)
+RIBOtotal_reads = read_indexer(Ribobams)
+
 
 # TODO link sampleFinder to read count
 
@@ -88,11 +101,11 @@ def sampleFinder(LIST, RNAorRibo):  # True for RNA, False for Ribosome
     templist1, templist2 = [], []
     if RNAorRibo:
         bamlist = RNAbams
-        templist2.extend([bamlist[i] for i in range(len(bamlist)) for line in LIST if line in bamlist[i]])
+        templist2.extend([bamlist[j] for j in range(len(bamlist)) for line in LIST if line in bamlist[j]])
     elif not RNAorRibo:
         bamlist = Ribobams
         templist1.extend([line[0] for line in ribosamples for element in LIST if element in line[1]])
-        templist2.extend([bamlist[i] for i in range(len(bamlist)) for line in templist1 if line in bamlist[i]])
+        templist2.extend([bamlist[n] for n in range(len(bamlist)) for line in templist1 if line in bamlist[n]])
     return templist2
 
 
@@ -154,8 +167,8 @@ class potORF(object):
             stops = plusStops
         else:
             stops = negStops
-        for y in range(0, threshold, 3):
-            codon = self.up[y:y + 3]
+        for w in range(0, threshold, 3):
+            codon = self.up[w:w + 3]
             codonCount += 1
             if any(string in codon for string in stops):
                 self.upcheck = True
@@ -169,8 +182,8 @@ class potORF(object):
             stops = plusStops
         else:
             stops = negStops
-        for x in range(0, threshold, 3):
-            codon = self.down[x:x + 3]
+        for z in range(0, threshold, 3):
+            codon = self.down[z:z + 3]
             codonCount += 1
             if any(string in codon for string in stops):
                 self.downcheck = True
@@ -220,11 +233,11 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         bamlist = RNAbams
     elif typeCheck is False:
         bamlist = Ribobams
-    for entry in bamlist:
-        readcount = os.popen('samtools view -q 10 ' + entry + ' chr%d:%d-%d | wc -l'
+    for step in bamlist:
+        readcount = os.popen('samtools view -q 10 ' + step + ' chr%d:%d-%d | wc -l'
                              % (int(CHROM), int(START), int(STOP)))
         count = float(readcount.readline().rstrip())
-        fullcounter = os.popen("samtools idxstats " + entry + " |awk '{sum+=$3} END {print sum}'")
+        fullcounter = os.popen("samtools idxstats " + step + " |awk '{sum+=$3} END {print sum}'")
         fullcount = float(fullcounter.readline().rstrip())
         WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
     if sum(WC) == float(0):
@@ -236,11 +249,11 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
 def genoCheck(DIR, CHROM, START, STOP, LENGTH):
     bamlist, WC = [], []
     bamlist = DIR
-    for entry in bamlist:
-        readcount = os.popen('samtools view -q 10 ' + entry + ' chr%d:%d-%d | wc -l'
+    for level in bamlist:
+        readcount = os.popen('samtools view -q 10 ' + level + ' chr%d:%d-%d | wc -l'
                              % (int(CHROM), int(START), int(STOP)))
         count = float(readcount.readline().rstrip())
-        fullcounter = os.popen("samtools idxstats " + entry + " |awk '{sum+=$3} END {print sum}'")
+        fullcounter = os.popen("samtools idxstats " + level + " |awk '{sum+=$3} END {print sum}'")
         fullcount = float(fullcounter.readline().rstrip())
         WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
     return WC
@@ -361,47 +374,21 @@ for i in range(len(potORFs)):
 # Creates a list of the SNP and a sample's FPKM given its genotype
 SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet = [], [], []
 SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet = [], [], []
+sublist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
 for i in range(len(potORFs)):
     if potORFs[i].upcheck and potORFs[i].downcheck:
+        varis = [potORFs[i].RNArefcount, potORFs[i].RNAsnpcount, potORFs[i].RNAhetcount,
+                 potORFs[i].RIBOrefcount, potORFs[i].RIBOsnpcount, potORFs[i].RIBOhetcount]
         if potORFs[i].strand:
-            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                                               str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
-                                    '\t'.join(potORFs[i].RNArefcount)])
-            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                                               str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
-                                    '\t'.join(potORFs[i].RNAsnpcount)])
-            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                                             str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
-                                  '\t'.join(potORFs[i].RNAhetcount)])
-            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                                                str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
-                                     '\t'.join(potORFs[i].RIBOrefcount)])
-            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                                                str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
-                                     '\t'.join(potORFs[i].RIBOsnpcount)])
-            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                                              str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]) + "\t" +
-                                   '\t'.join(potORFs[i].RIBOhetcount)])
+            row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+                   str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]
+            for x, y in sublist, varis:
+                sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
         else:
-            SNuPed_RNAhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
-                                    '\t'.join(potORFs[i].RNArefcount)])
-            SNuPed_RNAhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
-                                    '\t'.join(potORFs[i].RNAsnpcount)])
-            SNuPed_RNAhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
-                                  '\t'.join(potORFs[i].RNAhetcount)])
-            SNuPed_RIBOhoref.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
-                                     '\t'.join(potORFs[i].RIBOrefcount)])
-            SNuPed_RIBOhosnp.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
-                                     '\t'.join(potORFs[i].RIBOsnpcount)])
-            SNuPed_RIBOhet.extend(['\t'.join([str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-                                       str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]) + "\t" +
-                                   '\t'.join(potORFs[i].RIBOhetcount)])
-
+            row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+                   str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]
+            for x, y in sublist, varis:
+                sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
@@ -429,11 +416,12 @@ for entry, ext in outfilelist, outfileext:
 
 # Write a small report for start time, end time, and elapsed time
 with open(outfile + ".log", 'w') as f:
-    print >> f, "Program started:"
-    print >> f, startasc
-    print >> f, ""
-    print >> f, "Program completed:"
-    print >> f, endasc
-    print >> f, ""
-    print >> f, "Elapsed time:"
+    f.write("Program started:")
+    f.write(startasc)
+    f.write('\n')
+    f.write("Program completed:")
+    f.write(endasc)
+    f.write('\n')
+    f.write("Elapsed time:")
     print >> f, str(d) + " days", str(h) + " hours", str(m) + " minutes", str(round(s, 2)) + " seconds"
+    f.write('\n')
