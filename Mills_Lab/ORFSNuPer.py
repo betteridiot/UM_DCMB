@@ -74,6 +74,7 @@ else:
 # makes lists of all RNA-seq and ribosome profiling BAM files
 RNAbams, Ribobams = [], []
 RNAbams_total, Ribobams_total = [], []
+# dir, _, _ implies dir, dirs, files...however, I only want the top object
 os.chdir(RNADir)
 for dir, _, _ in os.walk(os.getcwd()):
     RNAbams.extend(glob.glob(os.path.join(dir, "*hits.bam")))
