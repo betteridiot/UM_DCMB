@@ -190,16 +190,10 @@ class potORF(object):
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
-                # self.RNArefcount = genoCheck(self.RNArefsamp, int(self.chrom), begin, end, self.length)
-                # self.RNAsnpcount = genoCheck(self.RNAsnpsamp, int(self.chrom), begin, end, self.length)
-                # self.RNAhetcount = genoCheck(self.RNAhetsamp, int(self.chrom), begin, end, self.length)
                 if self.RNAcount == ("NA" or float(0)):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
-                    # self.RIBOrefcount = genoCheck(self.RIBOrefsamp, int(self.chrom), begin, end, self.length)
-                    # self.RIBOsnpcount = genoCheck(self.RIBOsnpsamp, int(self.chrom), begin, end, self.length)
-                    # self.RIBOhetcount = genoCheck(self.RIBOhetsamp, int(self.chrom), begin, end, self.length)
 
 
 # Used to iterate potential ORF class instantiation
@@ -220,6 +214,8 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         readcount = os.popen('samtools view -q 10 ' + step + ' chr%d:%d-%d | wc -l'
                              % (int(CHROM), int(START), int(STOP)))
         count = float(readcount.readline().rstrip())
+
+        # TODO tie FPKM of sample to total read count of sample
         fullcounter = os.popen("samtools idxstats " + step + " |awk '{sum+=$3} END {print sum}'")
         fullcount = float(fullcounter.readline().rstrip())
         WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
@@ -240,6 +236,14 @@ def genoCheck(DIR, CHROM, START, STOP, LENGTH):
     return WC
 
 
+# Pull out the reference sequence at a given position
+def SNP_search(CHROM, START, STOP):
+    seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (reference, CHROM, CHROM, START, STOP))
+    seq.readline()
+    seq = seq.read().rstrip()
+    return seq
+
+
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     global potORFs
@@ -257,27 +261,15 @@ def ORFSNuper():
             else:
                 columns = line.split()
 
-                # Pull out genotype and sample name information for each SNP
-                # heterlist = np.asarray([z for z, genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]])
-                # heter = [header[index] for index in heterlist]
-                # horeflist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "0|0"])
-                # horef = [header[index] for index in horeflist]
-                # hosnplist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "1|1"])
-                # hosnp = [header[index] for index in hosnplist]
-
                 # Check to see if it is a SNP
                 if len(columns[3]) and len(columns[4]) == 1:
 
                     # look for the reference sequence around SNP
-                    seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
-                        reference, columns[0], columns[0], int(columns[1]) - 2, int(columns[1]) + 2))
-                    seq.readline()
-                    seq = seq.read().rstrip()
+                    seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
                     seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
-
                     # Check to see if (+) strand ORF is found
                     if plusStart in seq_step:
-                        posCheck = str.find(seq_step, plusStart) + 1
+                        posCheck = seq_step.find(plusStart) + 1
                         if 1 <= posCheck < 3:
                             seqPos = int(columns[1]) - posCheck
                         elif posCheck > 3:
@@ -290,7 +282,7 @@ def ORFSNuper():
 
                     # Check to see if (-) strand ORF is found
                     if negStart in seq_step:
-                        posCheck = str.find(seq_step, negStart) + 1
+                        posCheck = seq_step.find(seq_step, negStart) + 1
                         if 1 <= posCheck < 3:
                             seqPos = int(columns[1]) + posCheck
                         elif posCheck > 3:
@@ -331,35 +323,14 @@ for i in range(len(potORFs)):
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "+", str(potORFs[i].start),
                                           str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2),
                                           str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
-                                          str(potORFs[i].length), str(potORFs[i].homo_ref),
-                                          str(potORFs[i].homo_snp), str(potORFs[i].heterozygous)])])
+                                          str(potORFs[i].length)])])
             else:
                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "-", str(potORFs[i].start),
                                           str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3),
                                           str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
-                                          str(potORFs[i].length), str(potORFs[i].homo_ref),
-                                          str(potORFs[i].homo_snp), str(potORFs[i].heterozygous)])])
+                                          str(potORFs[i].length)])])
     else:
         continue
-
-# Creates a list of the SNP and a sample's FPKM given its genotype
-# SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet = [], [], []
-# SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet = [], [], []
-# sublist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
-# for i in range(len(potORFs)):
-#     if potORFs[i].upcheck and potORFs[i].downcheck:
-#         varis = [potORFs[i].RNArefcount, potORFs[i].RNAsnpcount, potORFs[i].RNAhetcount,
-#                  potORFs[i].RIBOrefcount, potORFs[i].RIBOsnpcount, potORFs[i].RIBOhetcount]
-#         if potORFs[i].strand:
-#             row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-#                    str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]
-#             for x, y in sublist, varis:
-#                 sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
-#         else:
-#             row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-#                    str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]
-#             for x, y in sublist, varis:
-#                 sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
