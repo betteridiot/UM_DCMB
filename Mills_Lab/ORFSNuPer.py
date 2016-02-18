@@ -65,8 +65,8 @@ plusStops = ['ATT', 'ATC', 'ACT']
 if args.alternative is True:
     plusStart, negStart = ('TAC', 'CAC'), ('CAT', 'CAC')
 else:
-    plusStart = "TAC"
-    negStart = "CAT"
+    plusStart = ("TAC",)
+    negStart = ("CAT",)
 # CODONS END
 
 # makes lists of all RNA-seq and ribosome profiling BAM files
@@ -81,29 +81,66 @@ for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
 
 
-# Finds total reads per bam file for FPKM
+# Make a dict of Samples and FPKM
 def read_indexer(fileDIR, LIST):
     for item in fileDIR:
         fullcounter = os.popen("samtools idxstats " + item + " |awk '{sum+=$3} END {print sum}'")
         fullcount = float(fullcounter.readline().rstrip())
         LIST.extend([[item, fullcount]])
+    return {key: value for (key, value) in LIST}
+
+# Used to iterate potential ORF class instantiation
+def portORF(CHROM, START, END, ID, STRAND):
+    portedORF = potORF(CHROM, START, END, ID, STRAND)
+    return portedORF
 
 
-read_indexer(RNAbams, RNAbams_total)
-read_indexer(Ribobams, Ribobams_total)
-
-# TODO may not need
-# Gets a list of all the bam files that have the given genotype
-def sampleFinder(LIST, RNAorRibo):  # True for RNA, False for Ribosome
-    templist1, templist2 = [], []
-    if RNAorRibo:
+# iteratively pulls FPKM over a given region across all BAMs
+def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
+    bamlist, WC = [], []
+    typeCheck = RNAorRIBO
+    if typeCheck:  # True = RNA-seq, False = Ribosome profiling
         bamlist = RNAbams
-        templist2.extend([bamlist[j] for j in range(len(bamlist)) for line in LIST if line in bamlist[j]])
-    elif not RNAorRibo:
+    elif typeCheck is False:
         bamlist = Ribobams
-        templist1.extend([line[0] for line in ribosamples for element in LIST if element in line[1]])
-        templist2.extend([bamlist[n] for n in range(len(bamlist)) for line in templist1 if line in bamlist[n]])
-    return templist2
+    for step in bamlist:
+        readcount = os.popen('samtools view -q 10 ' + step + ' chr%d:%d-%d | wc -l'
+                             % (int(CHROM), int(START), int(STOP)))
+        count = float(readcount.readline().rstrip())
+
+        # TODO tie FPKM of sample to total read count of sample
+        fullcounter = os.popen("samtools idxstats " + step + " |awk '{sum+=$3} END {print sum}'")
+        fullcount = float(fullcounter.readline().rstrip())
+        WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
+    if sum(WC) == float(0):
+        return "NA"
+    else:
+        return round(float(sum(WC)) / int(len(WC)), 3)
+
+
+# Pull out the reference sequence at a given position
+def SNP_search(CHROM, START, STOP):
+    seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (reference, CHROM, CHROM, START, STOP))
+    seq.readline()
+    seq = seq.read().rstrip()
+    return seq
+
+
+def strand_checker(SEQ, ROW, LIST):
+    posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
+    posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
+    if posCheckplus > 0:
+        seqPos = int(ROW[1]) - posCheckplus
+        LIST.extend([portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True)])
+        # orfcount += 1
+
+    # Check to see if (-) strand ORF is found
+    elif posCheckneg > 0:
+        seqPos = int(ROW[1]) + posCheckneg
+        LIST.extend([portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False)])
+        # orfcount +=1
+    else:
+        pass
 
 
 class potORF(object):
@@ -195,59 +232,13 @@ class potORF(object):
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
 
 
-# Used to iterate potential ORF class instantiation
-def portORF(CHROM, START, END, ID, STRAND):
-    portedORF = potORF(CHROM, START, END, ID, STRAND)
-    return portedORF
-
-
-# iteratively pulls FPKM over a given region across all BAMs
-def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
-    bamlist, WC = [], []
-    typeCheck = RNAorRIBO
-    if typeCheck:  # True = RNA-seq, False = Ribosome profiling
-        bamlist = RNAbams
-    elif typeCheck is False:
-        bamlist = Ribobams
-    for step in bamlist:
-        readcount = os.popen('samtools view -q 10 ' + step + ' chr%d:%d-%d | wc -l'
-                             % (int(CHROM), int(START), int(STOP)))
-        count = float(readcount.readline().rstrip())
-
-        # TODO tie FPKM of sample to total read count of sample
-        fullcounter = os.popen("samtools idxstats " + step + " |awk '{sum+=$3} END {print sum}'")
-        fullcount = float(fullcounter.readline().rstrip())
-        WC.extend([round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)])
-    if sum(WC) == float(0):
-        return "NA"
-    else:
-        return round(float(sum(WC)) / int(len(WC)), 3)
-
-
-def genoCheck(DIR, CHROM, START, STOP, LENGTH):
-    bamlist, WC = [], []
-    bamlist = DIR
-    for level in bamlist:
-        readcount = os.popen('samtools view -q 10 ' + level[0] + ' chr%d:%d-%d | wc -l'
-                             % (int(CHROM), int(START), int(STOP)))
-        count = float(readcount.readline().rstrip())
-        WC.extend([round((count/(LENGTH*level[1]))*math.pow(10, 9), 4)])
-    return WC
-
-
-# Pull out the reference sequence at a given position
-def SNP_search(CHROM, START, STOP):
-    seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (reference, CHROM, CHROM, START, STOP))
-    seq.readline()
-    seq = seq.read().rstrip()
-    return seq
-
 
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     global potORFs
-    global samplenames
     potORFs = []
+    global samplenames
+    # global orfcount # used for debugging
     # orfcount = 0  # use when debugging
     with gzip.open(vcf, 'rt')as VCF:
         # while orfcount < 15:   # use when debugging
@@ -266,31 +257,9 @@ def ORFSNuper():
                     # look for the reference sequence around SNP
                     seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
                     seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
-                    # Check to see if (+) strand ORF is found
-                    if plusStart in seq_step:
-                        posCheck = seq_step.find(plusStart) + 1
-                        if 1 <= posCheck < 3:
-                            seqPos = int(columns[1]) - posCheck
-                        elif posCheck > 3:
-                            seqPos = int(columns[1]) + posCheck
-                        else:
-                            pass
-                        # Create potential ORF class instance
-                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True)])
-                        # orfcount += 1  # use when debugging
 
-                    # Check to see if (-) strand ORF is found
-                    if negStart in seq_step:
-                        posCheck = seq_step.find(seq_step, negStart) + 1
-                        if 1 <= posCheck < 3:
-                            seqPos = int(columns[1]) + posCheck
-                        elif posCheck > 3:
-                            seqPos = int(columns[1]) - posCheck
-                        else:
-                            pass
-                        # Create potential ORF class instance
-                        potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False)])
-                        # orfcount += 1  # use when debugging
+                    # iff sequence creates start codon does it make a class instance
+                    strand_checker(seq_step, columns, potORFs)
                 else:
                     continue
             # For debugging
@@ -299,7 +268,8 @@ def ORFSNuper():
             #     break
 
 
-# Find the potential ORFs
+RNAbams_dict = read_indexer(RNAbams, RNAbams_total)
+Ribobams_dict = read_indexer(Ribobams, Ribobams_total)
 ORFSNuper()
 
 # Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
