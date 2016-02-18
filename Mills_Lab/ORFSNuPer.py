@@ -79,7 +79,9 @@ for dir, _, _ in os.walk(os.getcwd()):
 os.chdir(riboDir)
 for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
-
+with open("/home/mdsherm/Project/RNAsamples", 'r') as rnasamples:
+    samplenames = rnasamples.read().splitlines()
+RNAsamp_crossref = [(name, [entry for entry in RNAbams if name in entry]) for name in samplenames] # TODO USE RNAsamp_crossref to average FPKMs
 
 # Make a dict of Samples and FPKM
 def read_indexer(fileDIR, LIST):
@@ -236,7 +238,6 @@ class potORF(object):
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     global potORFs
-    potORFs = []
     global samplenames
     # global orfcount # used for debugging
     # orfcount = 0  # use when debugging
@@ -247,7 +248,6 @@ def ORFSNuper():
                 continue
             elif "#CHROM" in line:
                 header = line.split()
-                samplenames = header[9:]
             else:
                 columns = line.split()
 
@@ -336,3 +336,8 @@ with open(outfile + ".log", 'w') as f:
     print("Elapsed time:", file=f)
     print("%s days, %s hours, %s seconds" % (str(h), str(m), str(round(s, 2))), file=f)
     print('', file=f)
+
+temp = []
+for name in samplenames:
+   temp.append([name,[(entry) for entry in RNAbams if name in entry]])
+
