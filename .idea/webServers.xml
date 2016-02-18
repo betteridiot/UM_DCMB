@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="ed6652f3-68fd-414f-b881-43087a99ce8a" name="Axiom" url="http://axiom.ccmb.med.umich.edu">
+        <fileTransfer host="axiom.ccmb.med.umich.edu" port="22" rootFolder="/home/mdsherm/" accessType="SFTP" password="df8bdf9bdff9dfdfdfc9dfd8dfcbdfc7dfcedff9df9bdf8b" username="mdsherm">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
