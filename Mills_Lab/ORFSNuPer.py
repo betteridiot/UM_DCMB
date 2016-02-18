@@ -8,9 +8,7 @@ import time
 import argparse
 import math
 import csv
-import pydevd
 from multiprocessing.dummy import Pool as ThreadPool
-pydevd.settrace('axiom.ccmb.med.umich.edu', port=22, stdoutToServer=True, stderrToServer=True)
 
 """
 Created on Thu Jan 28 10:58:33 2016
