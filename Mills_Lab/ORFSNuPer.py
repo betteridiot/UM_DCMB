@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
 
+from __future__ import print_function
 import os
 import gzip
 import glob
@@ -126,13 +127,13 @@ class potORF(object):
     """
 
     # instantiate potential ORF object and get upstream and downstream sequences
-    def __init__(self, CHROM, START, END, ID, STRAND,
-                 HOMO_ref, HOMO_SNP, HETERO, REFSAMP, SNPSAMP, HETSAMP):
+    def __init__(self, CHROM, START, END, ID, STRAND):
         self.chrom = CHROM
         self.start = START
         self.end = END
         self.SNPid = ID
         self.strand = STRAND
+        self.length = 0
         self.up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.start) - threshold, int(self.start) - 1))
         self.up.readline()
@@ -143,21 +144,7 @@ class potORF(object):
         self.down = ((self.down.read()).rstrip()).upper()
         self.upcheck, self.downcheck = False, False
         self.upPos, self.downPos = [], []
-        self.RNAcount, self.ribocount = None, None
-        self.homo_ref = HOMO_ref
-        self.homo_SNP = HOMO_SNP
-        self.heterozygous = HETERO
-        self.length = None
-        self.homorefsamp, self.homosnpsamp, self.hetsamp = REFSAMP, SNPSAMP, HETSAMP
-        # Produce a list of bams that present with a given genotype for a given SNP
-        self.RNArefsamp = sampleFinder(self.homorefsamp, True)
-        self.RNAsnpsamp = sampleFinder(self.homosnpsamp, True)
-        self.RNAhetsamp = sampleFinder(self.hetsamp, True)
-        self.RIBOrefsamp = sampleFinder(self.homorefsamp, False)
-        self.RIBOsnpsamp = sampleFinder(self.homosnpsamp, False)
-        self.RIBOhetsamp = sampleFinder(self.hetsamp, False)
-        self.RNArefcount, self.RNAsnpcount, self.RNAhetcount = [], [], []
-        self.RIBOrefcount, self.RIBOsnpcount, self.RIBOhetcount = [], [], []
+        # self.RNAcount, self.ribocount = None, None
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
@@ -205,22 +192,21 @@ class potORF(object):
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
-                self.RNArefcount = genoCheck(self.RNArefsamp, int(self.chrom), begin, end, self.length)
-                self.RNAsnpcount = genoCheck(self.RNAsnpsamp, int(self.chrom), begin, end, self.length)
-                self.RNAhetcount = genoCheck(self.RNAhetsamp, int(self.chrom), begin, end, self.length)
+                # self.RNArefcount = genoCheck(self.RNArefsamp, int(self.chrom), begin, end, self.length)
+                # self.RNAsnpcount = genoCheck(self.RNAsnpsamp, int(self.chrom), begin, end, self.length)
+                # self.RNAhetcount = genoCheck(self.RNAhetsamp, int(self.chrom), begin, end, self.length)
                 if self.RNAcount == ("NA" or float(0)):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
-                    self.RIBOrefcount = genoCheck(self.RIBOrefsamp, int(self.chrom), begin, end, self.length)
-                    self.RIBOsnpcount = genoCheck(self.RIBOsnpsamp, int(self.chrom), begin, end, self.length)
-                    self.RIBOhetcount = genoCheck(self.RIBOhetsamp, int(self.chrom), begin, end, self.length)
+                    # self.RIBOrefcount = genoCheck(self.RIBOrefsamp, int(self.chrom), begin, end, self.length)
+                    # self.RIBOsnpcount = genoCheck(self.RIBOsnpsamp, int(self.chrom), begin, end, self.length)
+                    # self.RIBOhetcount = genoCheck(self.RIBOhetsamp, int(self.chrom), begin, end, self.length)
 
 
 # Used to iterate potential ORF class instantiation
-def portORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO, REFSAMP, SNPSAMP, HETSAMP):
-    portedORF = potORF(CHROM, START, END, ID, STRAND, HOREF, HOSNP, HETERO,
-                       REFSAMP, SNPSAMP, HETSAMP)
+def portORF(CHROM, START, END, ID, STRAND):
+    portedORF = potORF(CHROM, START, END, ID, STRAND)
     return portedORF
 
 
@@ -265,7 +251,6 @@ def ORFSNuper():
     with gzip.open(vcf, 'rt')as VCF:
         # while orfcount < 15:   # use when debugging
         for line in VCF:
-            # skip all of the lines before content
             if "##" in line:
                 continue
             elif "#CHROM" in line:
@@ -275,17 +260,12 @@ def ORFSNuper():
                 columns = line.split()
 
                 # Pull out genotype and sample name information for each SNP
-                heterlist = np.asarray([z for z, genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]])
-                heter = [header[index] for index in heterlist]
-                horeflist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "0|0"])
-                horef = [header[index] for index in horeflist]
-                hosnplist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "1|1"])
-                hosnp = [header[index] for index in hosnplist]
-
-                # Pull out genotype counts for a given row in VCF
-                homozygous_ref = columns.count("0|0")
-                homozygous_SNP = columns.count("1|1")
-                heterozygous = columns.count("1|0")+columns.count("0|1")
+                # heterlist = np.asarray([z for z, genotype in enumerate(columns) if genotype in ["1|0" or "0|1"]])
+                # heter = [header[index] for index in heterlist]
+                # horeflist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "0|0"])
+                # horef = [header[index] for index in horeflist]
+                # hosnplist = np.asarray([z for z, genotype in enumerate(columns) if genotype == "1|1"])
+                # hosnp = [header[index] for index in hosnplist]
 
                 # Check to see if it is a SNP
                 if len(columns[3]) and len(columns[4]) == 1:
@@ -306,11 +286,8 @@ def ORFSNuper():
                             seqPos = int(columns[1]) + posCheck
                         else:
                             pass
-
                         # Create potential ORF class instance
-                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True,
-                                                homozygous_ref, homozygous_SNP, heterozygous,
-                                                horef, hosnp, heter)])
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos + 2, columns[2], True)])
                         # orfcount += 1  # use when debugging
 
                     # Check to see if (-) strand ORF is found
@@ -322,11 +299,8 @@ def ORFSNuper():
                             seqPos = int(columns[1]) - posCheck
                         else:
                             pass
-
                         # Create potential ORF class instance
-                        potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False,
-                                                homozygous_ref, homozygous_SNP, heterozygous,
-                                                horef, hosnp, heter)])
+                        potORFs.extend([portORF(columns[0], seqPos, seqPos - 2, columns[2], False)])
                         # orfcount += 1  # use when debugging
                 else:
                     continue
@@ -371,23 +345,23 @@ for i in range(len(potORFs)):
         continue
 
 # Creates a list of the SNP and a sample's FPKM given its genotype
-SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet = [], [], []
-SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet = [], [], []
-sublist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
-for i in range(len(potORFs)):
-    if potORFs[i].upcheck and potORFs[i].downcheck:
-        varis = [potORFs[i].RNArefcount, potORFs[i].RNAsnpcount, potORFs[i].RNAhetcount,
-                 potORFs[i].RIBOrefcount, potORFs[i].RIBOsnpcount, potORFs[i].RIBOhetcount]
-        if potORFs[i].strand:
-            row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
-                   str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]
-            for x, y in sublist, varis:
-                sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
-        else:
-            row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
-                   str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]
-            for x, y in sublist, varis:
-                sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
+# SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet = [], [], []
+# SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet = [], [], []
+# sublist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
+# for i in range(len(potORFs)):
+#     if potORFs[i].upcheck and potORFs[i].downcheck:
+#         varis = [potORFs[i].RNArefcount, potORFs[i].RNAsnpcount, potORFs[i].RNAhetcount,
+#                  potORFs[i].RIBOrefcount, potORFs[i].RIBOsnpcount, potORFs[i].RIBOhetcount]
+#         if potORFs[i].strand:
+#             row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "+", str(potORFs[i].start),
+#                    str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3) + 2)]
+#             for x, y in sublist, varis:
+#                 sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
+#         else:
+#             row = [str(potORFs[i].SNPid), str(potORFs[i].chrom), "-", str(potORFs[i].start),
+#                    str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3)]
+#             for x, y in sublist, varis:
+#                 sublist[x].extend(['\t'.join(row) + "\t" + '\t'.join(varis[y])])
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
@@ -397,29 +371,30 @@ d, h = divmod(h, 24)
 
 # Print the list of potential ORFs in a tab-delimited file
 with open(outfile, 'w') as f:
-    print >> f, "Sequencing read counts normalized by FPKM"
-    print >> f, "Genotype counts are sums across all samples in VCF"
-    print >> f, "\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount",
-                           "Ribo_ReadCount", "ORF_Length", "0|0", "0|1", "1|1"])
-    print >> f, "\n".join(SNuPed)
+    f.write("Sequencing read counts normalized by FPKM")
+    print("Genotype counts are sums across all samples in VCF", file=f)
+    print("\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount",
+                     "Ribo_ReadCount", "ORF_Length", "0|0", "0|1", "1|1"]), file=f)
+    # print >> f, "\n".join(SNuPed)
 
 # Writes a tab-delimited file of the SNP versus genotype FPKM list
-outfilelist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
-outfileext = ["_RNAhoref", "_RNAhosnp", "_RNAhet", "_RIBOhoref", "_RIBOhosnp", "_RIBOhet"]
-for entry, ext in outfilelist, outfileext:
-    with open(outfile+outfileext[ext], 'w') as g:
-        print >> g, "Sequencing read counts normalized by FPKM"
-        print >> g, '\t'.join(["SNP_ID", "CHROM", "STRAND", "START", "STOP"])+"\t"+'\t'.join(samplenames)
-        print >> g, '\n'.join(entry)
-
+# outfilelist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
+# outfileext = ["_RNAhoref", "_RNAhosnp", "_RNAhet", "_RIBOhoref", "_RIBOhosnp", "_RIBOhet"]
+# for entry, ext in outfilelist, outfileext:
+#     with open(outfile+outfileext[ext], 'w') as g:
+#         print >> g, "Sequencing read counts normalized by FPKM"
+#         print >> g, '\t'.join(["SNP_ID", "CHROM", "STRAND", "START", "STOP"])+"\t"+'\t'.join(samplenames)
+#         print >> g, '\n'.join(entry)
+#
 
 # Write a small report for start time, end time, and elapsed time
 with open(outfile + ".log", 'w') as f:
-    f.write("Program started:")
-    f.write(startasc)
-    f.write('\n')
-    f.write("Program completed:")
-    f.write(endasc)
-    f.write('\n')
-    f.write("Elapsed time:")
-    print >> f, str(d) + " days", str(h) + " hours", str(m) + " minutes", str(round(s, 2)) + " seconds"
+    print("Program started:", file=f)
+    print(startasc, file=f)
+    print('', file=f)
+    print("Program completed:", file=f)
+    print(endasc)
+    print('', file=f)
+    print("Elapsed time:", file=f)
+    print("%s days, %s hours, %s seconds" % (str(h), str(m), str(round(s, 2))), file=f)
+    print('', file=f)
