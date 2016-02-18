@@ -94,7 +94,7 @@ def read_indexer(fileDIR, LIST):
 read_indexer(RNAbams, RNAbams_total)
 read_indexer(Ribobams, Ribobams_total)
 
-
+# TODO may not need
 # Gets a list of all the bam files that have the given genotype
 def sampleFinder(LIST, RNAorRibo):  # True for RNA, False for Ribosome
     templist1, templist2 = [], []
@@ -345,6 +345,8 @@ pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
 pool.close()
 pool.join()
 
+
+# TODO think of writing file iteratively
 # Using the joined instances of potential ORFs, cleans & coalesces the data for output
 SNuPed = []
 for i in range(len(potORFs)):
