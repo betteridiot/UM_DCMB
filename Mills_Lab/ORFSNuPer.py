@@ -59,12 +59,11 @@ with open('/home/mdsherm/Project/ribosamplescross') as ribo:
     reader = csv.reader(ribo, delimiter='\t')
     ribosamples.extend([row for row in reader])
 
-
 # CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
 plusStops = ['ATT', 'ATC', 'ACT']
 if args.alternative is True:
-    plusStart, negStart = ['TAC', 'CAC'], ['CAT', 'CAC']
+    plusStart, negStart = ('TAC', 'CAC'), ('CAT', 'CAC')
 else:
     plusStart = "TAC"
     negStart = "CAT"
