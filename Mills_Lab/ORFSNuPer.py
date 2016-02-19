@@ -328,6 +328,16 @@ with open(outfile, 'w') as f:
 #         print >> g, '\n'.join(entry)
 #
 
+# gets the names for each sample
+for i in range(len(RNAsamp_crossref)):
+    total, count = float(0), float(0)
+    for j in RNAsamp_crossref[i][1]:
+        total += RNAbams_dict.get(j)
+        readcount = os.popen('samtools view -q 10 ' + j + ' chr%d:%d-%d | wc -l'
+                     % (int(CHROM), int(START), int(STOP)))
+        count += float(readcount.readline().rstrip())
+    round((count/(LENGTH*fullcount))*math.pow(10, 9), 4)]
+
 # Write a small report for start time, end time, and elapsed time
 with open(outfile + ".log", 'w') as f:
     print("Program started:", file=f)
