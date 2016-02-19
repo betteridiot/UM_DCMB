@@ -81,7 +81,9 @@ for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
 with open("/home/mdsherm/Project/RNAsamples", 'r') as rnasamples:
     samplenames = rnasamples.read().splitlines()
-RNAsamp_crossref = [(name, [entry for entry in RNAbams if name in entry]) for name in samplenames] # TODO USE RNAsamp_crossref to average FPKMs
+RNAsamp_crossref = [(name, [entry for entry in RNAbams if name in entry]) for name in samplenames]
+# TODO USE RNAsamp_crossref to average FPKMs
+
 
 # Make a dict of Samples and FPKM
 def read_indexer(fileDIR, LIST):
@@ -90,6 +92,7 @@ def read_indexer(fileDIR, LIST):
         fullcount = float(fullcounter.readline().rstrip())
         LIST.extend([[item, fullcount]])
     return {key: value for (key, value) in LIST}
+
 
 # Used to iterate potential ORF class instantiation
 def portORF(CHROM, START, END, ID, STRAND):
@@ -234,10 +237,10 @@ class potORF(object):
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
 
 
-
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     global potORFs
+    potORFs = []
     global samplenames
     # global orfcount # used for debugging
     # orfcount = 0  # use when debugging
@@ -336,8 +339,3 @@ with open(outfile + ".log", 'w') as f:
     print("Elapsed time:", file=f)
     print("%s days, %s hours, %s seconds" % (str(h), str(m), str(round(s, 2))), file=f)
     print('', file=f)
-
-temp = []
-for name in samplenames:
-   temp.append([name,[(entry) for entry in RNAbams if name in entry]])
-
