@@ -127,7 +127,10 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
                                  % (int(CHROM), int(START), int(STOP)))
             counter.append(float(readcount.readline().rstrip()))
             fullcount.append(bamlist_dict[filename])
-        samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*math.pow(10, 9))
+        try:
+            samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*math.pow(10, 9))
+        except ZeroDivisionError:
+            samplereads = float(0)
     if sum(samplereads) == (float(0) or None):
         return "NA"
     else:
