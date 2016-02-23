@@ -318,9 +318,12 @@ def file_writer(POTORF):
 # Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
 pool = ThreadPool()
 pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
-pool.map(lambda obj: file_writer(obj), potORFs)
 pool.close()
 pool.join()
+
+# Write each SNP to file
+for SNP in potORFs:
+    file_writer(SNP)
 
 # Using the joined instances of potential ORFs, cleans & coalesces the data for output
 # SNuPed = []
