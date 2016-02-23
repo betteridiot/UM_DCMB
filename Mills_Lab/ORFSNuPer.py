@@ -5,7 +5,7 @@ import os
 import gzip
 import glob
 import time
-import argparse
+# import argparse
 import math
 import csv
 from multiprocessing.dummy import Pool as ThreadPool
@@ -294,13 +294,6 @@ Ribobams_dict = read_indexer(Ribobams, Ribobams_total)
 Ribototalreads = dict(zip(samplenames, Ribobams_dict.values()))
 ORFSNuper()
 
-# Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
-pool = ThreadPool()
-pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
-pool.map(lambda obj: file_writer(obj), potORFs)
-pool.close()
-pool.join()
-
 
 def file_writer(POTORF):
     try:
@@ -321,6 +314,13 @@ def file_writer(POTORF):
     except TypeError:
         pass
 
+
+# Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
+pool = ThreadPool()
+pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
+pool.map(lambda obj: file_writer(obj), potORFs)
+pool.close()
+pool.join()
 
 # Using the joined instances of potential ORFs, cleans & coalesces the data for output
 # SNuPed = []
