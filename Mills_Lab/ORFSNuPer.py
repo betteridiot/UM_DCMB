@@ -130,7 +130,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         try:
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*math.pow(10, 9))
         except ZeroDivisionError:
-            samplereads = float(0)
+            pass
     if sum(samplereads) == (float(0) or None):
         return "NA"
     else:
