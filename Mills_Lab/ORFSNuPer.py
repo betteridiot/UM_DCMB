@@ -8,6 +8,8 @@ import time
 # import argparse
 import math
 import csv
+import string
+import random
 from multiprocessing.dummy import Pool as ThreadPool
 
 """
@@ -52,7 +54,7 @@ startTime, startasc = time.time(), time.asctime()
 # reference = args.ref
 # threshold = args.threshold
 reference = '/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes'
-vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr6.vcf.gz'
+vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz'
 RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
 riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
 outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
@@ -104,6 +106,13 @@ def read_indexer(fileDIR, LIST):
     return {key: value for (key, value) in LIST}
 
 
+# Matches sample names to bam files and pulls out total reads of
+RNAbams_dict = read_indexer(RNAbams, RNAbams_total)
+RNAtotalreads = dict(zip(samplenames, [sum([RNAbams_dict.get(j) for j in i[1]])for i in RNAsamp_crossref]))
+Ribobams_dict = read_indexer(Ribobams, Ribobams_total)
+Ribototalreads = dict(zip(samplenames, Ribobams_dict.values()))
+
+
 # Used to iterate potential ORF class instantiation
 def portORF(CHROM, START, END, ID, STRAND, GENO):
     portedORF = potORF(CHROM, START, END, ID, STRAND, GENO)
@@ -130,7 +139,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         try:
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*math.pow(10, 9))
         except ZeroDivisionError:
-            pass
+            samplereads.append(float(0))
     if sum(samplereads) == (float(0) or None):
         return "NA"
     else:
@@ -152,15 +161,13 @@ def strand_checker(SEQ, ROW, LIST):
     if posCheckplus > 0:
         seqPos = int(ROW[1]) - posCheckplus
         LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[9:]))
-        orfcount += 1
-        print(orfcount)
+        # orfcount += 1
 
     # Check to see if (-) strand ORF is found
     elif posCheckneg > 0:
         seqPos = int(ROW[1]) + posCheckneg
         LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[9:]))
-        orfcount += 1
-        print(orfcount)
+        # orfcount += 1
     else:
         pass
 
@@ -255,49 +262,67 @@ class potORF(object):
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
 
 
+# Removes bams from the list to be checked if they are not in the samples of the vcf
+def popper(LIST):
+    index, counter = 0, []
+    for i in range(len(LIST)):
+        if LIST[i][0] in samples:
+            index += 1
+            pass
+        else:
+            counter.append(index)
+            index += 1
+    for i in counter[::-1]:
+        LIST.pop(i)
+
+
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     global potORFs
-    global orfcount
+    # global orfcount
     potORFs = []
-    global samplenames
+    global samples
     with gzip.open(vcf, 'rt')as VCF:
-        while orfcount < 50:   # use when debugging
-            for line in VCF:
-                if "##" in line:
-                    continue
-                elif "#CHROM" in line:
-                    header = line.split()
+        # while orfcount < 50:   # use when debugging
+        for line in VCF:
+            if "##" in line:
+                continue
+            elif "#CHROM" in line:
+                header = line.split()
+                samples = header[9:]
+                popper(RNAsamp_crossref)
+                popper(Ribosamp_crossref)
+            else:
+                columns = line.split()
+
+                # Check to see if it is a SNP
+                if len(columns[3]) and len(columns[4]) == 1:
+
+                    # look for the reference sequence around SNP
+                    seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
+                    seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
+
+                    # iff sequence creates start codon does it make a class instance
+                    strand_checker(seq_step, columns, potORFs)
                 else:
-                    columns = line.split()
-
-                    # Check to see if it is a SNP
-                    if len(columns[3]) and len(columns[4]) == 1:
-
-                        # look for the reference sequence around SNP
-                        seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
-                        seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
-
-                        # iff sequence creates start codon does it make a class instance
-                        strand_checker(seq_step, columns, potORFs)
-                    else:
-                        continue
+                    continue
                     # For debugging
-                    if orfcount >= 50:
-                        print("orfcount met!")
-                        break
+                    # if orfcount >= 50:
+                    #     print("orfcount met!")
+                    #     break
 
-# Matches sample names to bam files and pulls out total reads of
-RNAbams_dict = read_indexer(RNAbams, RNAbams_total)
-RNAtotalreads = dict(zip(samplenames, [sum([RNAbams_dict.get(j) for j in i[1]])for i in RNAsamp_crossref]))
-Ribobams_dict = read_indexer(Ribobams, Ribobams_total)
-Ribototalreads = dict(zip(samplenames, Ribobams_dict.values()))
+
 ORFSNuper()
+
+
+# Make a unique filename for each SNP written
+def id_generator(size=7, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))+".snp"
 
 
 def file_writer(POTORF):
     try:
-        filename = outDir + str(sum(POTORF.RNAcount)) + ".snp"
+        filename = outDir + id_generator()
         if POTORF.strand:
             info = [str(POTORF.chrom), "+", str(POTORF.start), str((POTORF.start + int(POTORF.downPos[0]) * 3)+2)]
         else:
@@ -308,7 +333,7 @@ def file_writer(POTORF):
             print('\t'.join(info), file=writer)
             header2 = ["Sample", "Genotype", "RNA_FPKM", "Ribo_FPKM"]
             print('\t'.join(header2), file=writer)
-            SNuPed = [(a, b, c, d) for i, (a, b, c, d) in enumerate(zip(samplenames, POTORF.genotypes,
+            SNuPed = [(a, b, c, d) for i, (a, b, c, d) in enumerate(zip(samples, POTORF.genotypes,
                                                                         POTORF.RNAcount, POTORF.ribocount))]
             writer.write('\n'.join('%s\t%s\t%s\t%s' % x for x in SNuPed))
     except TypeError:
@@ -321,54 +346,20 @@ pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
 pool.close()
 pool.join()
 
-# Write each SNP to file
-for SNP in potORFs:
-    file_writer(SNP)
+pool = ThreadPool()
+pool.map(lambda obj: file_writer(obj), potORFs)
+pool.close()
+pool.join()
 
-# Using the joined instances of potential ORFs, cleans & coalesces the data for output
-# SNuPed = []
-# for i in range(len(potORFs)):
-#     if potORFs[i].upcheck and potORFs[i].downcheck:  # does it have an up/downstream stop?
-#         if potORFs[i].RNAcount == (0 or None):
-#             continue
-#         else:
-#             if potORFs[i].strand:  # is it a (+) strand?
-#                 # if there were RNA-seq reads, check for Ribosome profiling reads (translation)
-#                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "+", str(potORFs[i].start),
-#                                           str((potORFs[i].start + int(potORFs[i].downPos[0]) * 3)+2),
-#                                           str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
-#                                           str(potORFs[i].length)])])
-#             else:
-#                 SNuPed.extend(['\t'.join([str(potORFs[i].chrom), "-", str(potORFs[i].start),
-#                                           str(potORFs[i].start - int(potORFs[i].upPos[-1]) * 3),
-#                                           str(potORFs[i].RNAcount), str(potORFs[i].ribocount),
-#                                           str(potORFs[i].length)])])
-#     else:
-#         continue
+# # Write each SNP to file
+# for SNP in potORFs:
+#     file_writer(SNP)
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
 m, s = divmod(endTime - startTime, 60)
 h, m = divmod(m, 60)
 d, h = divmod(h, 24)
-
-# Print the list of potential ORFs in a tab-delimited file
-# with open(outfile, 'w') as f:
-#     f.write("Sequencing read counts normalized by FPKM")
-#     print("Genotype counts are sums across all samples in VCF", file=f)
-#     print("\t".join(["CHROM", "STRAND", "START", "Nearest_STOP", "RNA_ReadCount",
-#                      "Ribo_ReadCount", "ORF_Length", "0|0", "0|1", "1|1"]), file=f)
-#     # print >> f, "\n".join(SNuPed)
-
-# Writes a tab-delimited file of the SNP versus genotype FPKM list
-# outfilelist = [SNuPed_RNAhoref, SNuPed_RNAhosnp, SNuPed_RNAhet, SNuPed_RIBOhoref, SNuPed_RIBOhosnp, SNuPed_RIBOhet]
-# outfileext = ["_RNAhoref", "_RNAhosnp", "_RNAhet", "_RIBOhoref", "_RIBOhosnp", "_RIBOhet"]
-# for entry, ext in outfilelist, outfileext:
-#     with open(outfile+outfileext[ext], 'w') as g:
-#         print >> g, "Sequencing read counts normalized by FPKM"
-#         print >> g, '\t'.join(["SNP_ID", "CHROM", "STRAND", "START", "STOP"])+"\t"+'\t'.join(samplenames)
-#         print >> g, '\n'.join(entry)
-#
 
 # Write a small report for start time, end time, and elapsed time
 with open(outDir + "out.log", 'w') as f:
