@@ -52,7 +52,7 @@ startTime, startasc = time.time(), time.asctime()
 # reference = args.ref
 # threshold = args.threshold
 reference = '/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes'
-vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/test.vcf.gz'
+vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr6.vcf.gz'
 RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
 riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
 outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
@@ -262,7 +262,7 @@ def ORFSNuper():
     potORFs = []
     global samplenames
     with gzip.open(vcf, 'rt')as VCF:
-        while orfcount < 15:   # use when debugging
+        while orfcount < 50:   # use when debugging
             for line in VCF:
                 if "##" in line:
                     continue
@@ -283,7 +283,7 @@ def ORFSNuper():
                     else:
                         continue
                     # For debugging
-                    if orfcount >= 15:
+                    if orfcount >= 50:
                         print("orfcount met!")
                         break
 
