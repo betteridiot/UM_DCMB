@@ -6,7 +6,6 @@ import gzip
 import glob
 import time
 # import argparse
-import math
 import csv
 import string
 import random
@@ -137,10 +136,10 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
             counter.append(float(readcount.readline().rstrip()))
             fullcount.append(bamlist_dict[filename])
         try:
-            samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*math.pow(10, 9))
+            samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*10**9)
         except ZeroDivisionError:
             samplereads.append(float(0))
-    if sum(samplereads) == (float(0) or None):
+    if max(samplereads) < .0005:
         return "NA"
     else:
         return samplereads
@@ -323,30 +322,33 @@ def id_generator(size=7, chars=string.ascii_uppercase + string.digits):
 def file_writer(POTORF):
     try:
         filename = outDir + id_generator()
-        if POTORF.strand:
-            info = [str(POTORF.chrom), "+", str(POTORF.start), str((POTORF.start + int(POTORF.downPos[0]) * 3)+2)]
+        if POTORF.RNAcount == "NA":
+            pass
         else:
-            info = [str(POTORF.chrom), "-", str(POTORF.start), str(POTORF.start - int(POTORF.upPos[-1]) * 3)]
-        with open(filename, 'w') as writer:
-            header1 = ["#ID", "CHROM", "STRAND", "START", "Nearest_STOP"]
-            print('\t'.join(header1), file=writer)
-            print('\t'.join(info), file=writer)
-            header2 = ["Sample", "Genotype", "RNA_FPKM", "Ribo_FPKM"]
-            print('\t'.join(header2), file=writer)
-            SNuPed = [(a, b, c, d) for i, (a, b, c, d) in enumerate(zip(samples, POTORF.genotypes,
-                                                                        POTORF.RNAcount, POTORF.ribocount))]
-            writer.write('\n'.join('%s\t%s\t%s\t%s' % x for x in SNuPed))
+            if POTORF.strand:
+                info = [str(POTORF.chrom), "+", str(POTORF.start), str((POTORF.start + int(POTORF.downPos[0]) * 3)+2)]
+            else:
+                info = [str(POTORF.chrom), "-", str(POTORF.start), str(POTORF.start - int(POTORF.upPos[-1]) * 3)]
+            with open(filename, 'w') as writer:
+                header1 = ["#ID", "CHROM", "STRAND", "START", "Nearest_STOP"]
+                print('\t'.join(header1), file=writer)
+                print('\t'.join(info), file=writer)
+                header2 = ["Sample", "Genotype", "RNA_FPKM", "Ribo_FPKM"]
+                print('\t'.join(header2), file=writer)
+                SNuPed = [(a, b, c, d) for i, (a, b, c, d) in enumerate(zip(samples, POTORF.genotypes,
+                                                                            POTORF.RNAcount, POTORF.ribocount))]
+                writer.write('\n'.join('%s\t%s\t%s\t%s' % x for x in SNuPed))
     except TypeError:
         pass
 
 
 # Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
-pool = ThreadPool()
+pool = ThreadPool(8)
 pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
 pool.close()
 pool.join()
 
-pool = ThreadPool()
+pool = ThreadPool(8)
 pool.map(lambda obj: file_writer(obj), potORFs)
 pool.close()
 pool.join()
