@@ -401,7 +401,7 @@ for object in range(len(potORFs)):
     if potORFs[object].RNAcount == "NA":
         indexer.append(object)
 for index in indexer[::-1]:
-        del porORFs[index]
+        del potORFs[index]
 
 pool = ThreadPool()
 pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
