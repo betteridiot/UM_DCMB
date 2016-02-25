@@ -396,12 +396,19 @@ def file_writer(POTORF):
 
 
 # Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
-pool = ThreadPool(8)
+indexer = []
+for object in range(len(potORFs)):
+    if potORFs[object].RNAcount == "NA":
+        indexer.append(object)
+for index in indexer[::-1]:
+        del porORFs[index]
+
+pool = ThreadPool()
 pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
 pool.close()
 pool.join()
 
-pool = ThreadPool(8)
+pool = ThreadPool()
 pool.map(lambda obj: file_writer(obj), potORFs)
 pool.close()
 pool.join()
