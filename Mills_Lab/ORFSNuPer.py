@@ -148,8 +148,8 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         try:
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*10**9)
         except ZeroDivisionError:
-            samplereads.append(float(0))
-    if max(samplereads) < 0.05:
+            samplereads.append(0)
+    if RNAorRIBO and (max(samplereads) < 0.05):
         return None
     else:
         return samplereads
@@ -277,7 +277,7 @@ class potORF(object):
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
                 if self.RNAcount == None:
-                    del self
+                    pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
 
@@ -286,7 +286,7 @@ class potORF(object):
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
                 if self.RNAcount == None:
-                    del self
+                    pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
 
@@ -375,13 +375,13 @@ def file_writer(POTORF):
     """
     try:
         filename = outDir + id_generator()
-        if POTORF.RNAcount == "NA":
+        if POTORF.RNAcount == None:
             pass
         else:
             if POTORF.strand:
-                info = [str(POTORF.chrom), "+", str(POTORF.start), str((POTORF.start + int(POTORF.downPos[0]) * 3)+2)]
+                info = [POTORF.SNPid, str(POTORF.chrom), "+", str(POTORF.start), str((POTORF.start + int(POTORF.downPos[0]) * 3)+2)]
             else:
-                info = [str(POTORF.chrom), "-", str(POTORF.start), str(POTORF.start - int(POTORF.upPos[-1]) * 3)]
+                info = [POTORF.SNPid, str(POTORF.chrom), "-", str(POTORF.start), str(POTORF.start - int(POTORF.upPos[-1]) * 3)]
             with open(filename, 'w') as writer:
                 header1 = ["#ID", "CHROM", "STRAND", "START", "Nearest_STOP"]
                 print('\t'.join(header1), file=writer)
