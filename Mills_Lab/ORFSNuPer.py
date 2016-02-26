@@ -149,7 +149,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*10**9)
         except ZeroDivisionError:
             samplereads.append(None)
-    if RNAorRIBO and (max(samplereads) < 1):
+    if RNAorRIBO and (max(samplereads) < 1) and sum(i <= 0 for i in samplereads) > len(samplereads)-1:
         return None
     else:
         return samplereads
@@ -401,12 +401,12 @@ def file_writer(POTORF):
 
 
 # Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
-indexer = []
-for object in range(len(potORFs)):
-    if potORFs[object].RNAcount == "NA":
-        indexer.append(object)
-for index in indexer[::-1]:
-        del potORFs[index]
+# indexer = []
+# for object in range(len(potORFs)):
+#     if potORFs[object].RNAcount == None:
+#         indexer.append(object)
+# for index in indexer[::-1]:
+#         del potORFs[index]
 
 pool = ThreadPool()
 pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
