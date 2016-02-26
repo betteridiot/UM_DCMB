@@ -149,8 +149,8 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*10**9)
         except ZeroDivisionError:
             samplereads.append(float(0))
-    if max(samplereads) < 0.0005:
-        return "NA"
+    if max(samplereads) < 0.05:
+        return None
     else:
         return samplereads
 
@@ -276,7 +276,7 @@ class potORF(object):
                 begin, end = int(self.start), int(self.start) + (int(self.downPos[0]) * 3) + 2
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
-                if self.RNAcount == ("NA" or float(0)):
+                if self.RNAcount == None:
                     del self
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
@@ -285,7 +285,7 @@ class potORF(object):
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
-                if self.RNAcount == ("NA" or float(0)):
+                if self.RNAcount == None:
                     del self
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
