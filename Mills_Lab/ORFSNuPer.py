@@ -433,5 +433,5 @@ with open(outDir + "out.log", 'w') as f:
     print(endasc)
     print('', file=f)
     print("Elapsed time:", file=f)
-    print("%s days, %s hours, %s seconds" % (str(h), str(m), str(round(s, 2))), file=f)
+    print("%s days, %s hours, %s minutes, %s seconds" % (str(d), str(h), str(m), str(round(s, 2))), file=f)
     print('', file=f)
