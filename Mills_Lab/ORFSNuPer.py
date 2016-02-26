@@ -407,6 +407,7 @@ pool = ThreadPool()
 pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
 pool.close()
 pool.join()
+del pool
 
 pool = ThreadPool()
 pool.map(lambda obj: file_writer(obj), potORFs)
