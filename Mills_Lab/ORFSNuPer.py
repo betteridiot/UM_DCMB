@@ -185,18 +185,21 @@ def strand_checker(SEQ, ROW, LIST):
     global orfcount
     posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
     posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
-    if posCheckplus > 0:
-        seqPos = int(ROW[1]) - posCheckplus
-        LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[9:]))
-        orfcount += 1
-
-    # Check to see if (-) strand ORF is found
-    elif posCheckneg > 0:
-        seqPos = int(ROW[1]) + posCheckneg
-        LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[9:]))
-        orfcount += 1
-    else:
+    if len(ROW[9:]) == ROW.count("0|0"):
         pass
+    else:
+        if posCheckplus > 0:
+            seqPos = int(ROW[1]) - posCheckplus
+            LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[9:]))
+            orfcount += 1
+
+        # Check to see if (-) strand ORF is found
+        elif posCheckneg > 0:
+            seqPos = int(ROW[1]) + posCheckneg
+            LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[9:]))
+            orfcount += 1
+        else:
+            pass
 
 
 class potORF(object):
