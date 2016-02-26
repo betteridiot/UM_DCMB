@@ -148,8 +148,8 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         try:
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*10**9)
         except ZeroDivisionError:
-            samplereads.append(0)
-    if RNAorRIBO and (max(samplereads) < 0.05):
+            samplereads.append(None)
+    if RNAorRIBO and (max(samplereads) < 1):
         return None
     else:
         return samplereads
@@ -182,22 +182,22 @@ def strand_checker(SEQ, ROW, LIST):
         LIST (list): the list that will hold the generated potORFs
     """
 
-    global orfcount
+    # global orfcount
     posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
     posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
-    if len(ROW[9:]) == ROW.count("0|0"):
+    if ROW.count("1|1") < 1 or ROW.count("0|0") == len(ROW[9:]):
         pass
     else:
         if posCheckplus > 0:
             seqPos = int(ROW[1]) - posCheckplus
             LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[9:]))
-            orfcount += 1
+            # orfcount += 1
 
         # Check to see if (-) strand ORF is found
         elif posCheckneg > 0:
             seqPos = int(ROW[1]) + posCheckneg
             LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[9:]))
-            orfcount += 1
+            # orfcount += 1
         else:
             pass
 
@@ -320,37 +320,37 @@ def popper(LIST):
 def ORFSNuper():
     """Identifies SNPs, extracts their sequences from reference +/- 2 nt and looks for start codons."""
     global potORFs
-    global orfcount
+    # global orfcount
     potORFs = []
     global samples
     with gzip.open(vcf, 'rt')as VCF:
-        while orfcount < 1001:   # use when debugging
-            for line in VCF:
-                if "##" in line:
-                    continue
-                elif "#CHROM" in line:
-                    header = line.split()
-                    samples = header[9:]
-                    popper(RNAsamp_crossref)
-                    popper(Ribosamp_crossref)
+        # while orfcount < 1001:   # use when debugging
+        for line in VCF:
+            if "##" in line:
+                continue
+            elif "#CHROM" in line:
+                header = line.split()
+                samples = header[9:]
+                popper(RNAsamp_crossref)
+                popper(Ribosamp_crossref)
+            else:
+                columns = line.split()
+
+                # Check to see if it is a SNP
+                if len(columns[3]) and len(columns[4]) == 1:
+
+                    # look for the reference sequence around SNP
+                    seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
+                    seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
+
+                    # iff sequence creates start codon does it make a class instance
+                    strand_checker(seq_step, columns, potORFs)
                 else:
-                    columns = line.split()
-
-                    # Check to see if it is a SNP
-                    if len(columns[3]) and len(columns[4]) == 1:
-
-                        # look for the reference sequence around SNP
-                        seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
-                        seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
-
-                        # iff sequence creates start codon does it make a class instance
-                        strand_checker(seq_step, columns, potORFs)
-                    else:
-                        continue
+                    continue
                     # For debugging
-                    if orfcount >= 1000:
-                        print("orfcount met!")
-                        break
+                    # if orfcount >= 1000:
+                    #     print("orfcount met!")
+                    #     break
 
 
 ORFSNuper()
@@ -382,9 +382,11 @@ def file_writer(POTORF):
             pass
         else:
             if POTORF.strand:
-                info = [POTORF.SNPid, str(POTORF.chrom), "+", str(POTORF.start), str((POTORF.start + int(POTORF.downPos[0]) * 3)+2)]
+                info = ["#" + POTORF.SNPid, str(POTORF.chrom), "+", str(POTORF.start),
+                        str((POTORF.start + int(POTORF.downPos[0]) * 3)+2)]
             else:
-                info = [POTORF.SNPid, str(POTORF.chrom), "-", str(POTORF.start), str(POTORF.start - int(POTORF.upPos[-1]) * 3)]
+                info = ["#" + POTORF.SNPid, str(POTORF.chrom), "-", str(POTORF.start),
+                        str(POTORF.start - int(POTORF.upPos[-1]) * 3)]
             with open(filename, 'w') as writer:
                 header1 = ["#ID", "CHROM", "STRAND", "START", "Nearest_STOP"]
                 print('\t'.join(header1), file=writer)
