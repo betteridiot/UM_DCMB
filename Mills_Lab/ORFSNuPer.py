@@ -185,7 +185,7 @@ def strand_checker(SEQ, ROW, LIST):
     # global orfcount
     posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
     posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
-    if ROW.count("1|1") < 1 or ROW.count("0|0") == len(ROW[9:]):
+    if ROW.count("1|1") < 1 and ROW.count("0|0") == len(ROW[9:]):
         pass
     else:
         if posCheckplus > 0:
@@ -279,7 +279,7 @@ class potORF(object):
                 begin, end = int(self.start), int(self.start) + (int(self.downPos[0]) * 3) + 2
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
-                if self.RNAcount == None:
+                if self.RNAcount is None:
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
@@ -288,7 +288,7 @@ class potORF(object):
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
-                if self.RNAcount == None:
+                if self.RNAcount is None:
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
@@ -378,7 +378,7 @@ def file_writer(POTORF):
     """
     try:
         filename = outDir + id_generator()
-        if POTORF.RNAcount == None:
+        if POTORF.RNAcount is None:
             pass
         else:
             if POTORF.strand:
