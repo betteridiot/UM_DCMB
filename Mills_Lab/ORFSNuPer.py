@@ -185,7 +185,7 @@ def strand_checker(SEQ, ROW, LIST):
     # global orfcount
     posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
     posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
-    if ROW.count("1|1") < 1 or ROW.count("1|1") == len(ROW[9:]):
+    if not 1 <= ROW.count("1|1") < len(ROW[9:]):
         pass
     else:
         if posCheckplus > 0:
@@ -391,7 +391,7 @@ def file_writer(POTORF):
                 header1 = ["#ID", "CHROM", "STRAND", "START", "Nearest_STOP"]
                 print('\t'.join(header1), file=writer)
                 print('\t'.join(info), file=writer)
-                header2 = ["Sample", "Genotype", "RNA_FPKM", "Ribo_FPKM"]
+                header2 = ["#Sample", "Genotype", "RNA_FPKM", "Ribo_FPKM"]
                 print('\t'.join(header2), file=writer)
                 SNuPed = [(a, b, c, d) for i, (a, b, c, d) in enumerate(zip(samples, POTORF.genotypes,
                                                                             POTORF.RNAcount, POTORF.ribocount))]
