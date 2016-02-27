@@ -149,7 +149,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*10**9)
         except ZeroDivisionError:
             samplereads.append(None)
-    if RNAorRIBO and (max(samplereads) < 1) and sum(i <= 0 for i in samplereads) > len(samplereads)-1:
+    if RNAorRIBO and max(samplereads) < 1:
         return None
     else:
         return samplereads
@@ -185,7 +185,7 @@ def strand_checker(SEQ, ROW, LIST):
     # global orfcount
     posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
     posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
-    if ROW.count("1|1") < 1 and ROW.count("0|0") == len(ROW[9:]):
+    if ROW.count("1|1") < 1 or ROW.count("1|1") == len(ROW[9:]):
         pass
     else:
         if posCheckplus > 0:
