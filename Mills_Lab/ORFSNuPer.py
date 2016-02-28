@@ -148,7 +148,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         try:
             samplereads.append((sum(counter)/(sum(fullcount)*LENGTH))*10**9)
         except ZeroDivisionError:
-            samplereads.append(None)
+            samplereads.append(0)
     if RNAorRIBO and max(samplereads) < 1:
         return None
     else:
@@ -238,7 +238,7 @@ class potORF(object):
         self.down = ((self.down.read()).rstrip()).upper().replace('\n', '')
         self.upcheck, self.downcheck = False, False
         self.upPos, self.downPos = [], []
-        self.RNAcount, self.ribocount = None, None
+        self.RNAcount, self.ribocount = 0, 0
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
