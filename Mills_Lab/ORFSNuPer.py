@@ -182,7 +182,7 @@ def strand_checker(SEQ, ROW, LIST):
         LIST (list): the list that will hold the generated potORFs
     """
 
-    # global orfcount
+    global orfcount
     posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
     posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
     if not 1 <= ROW.count("1|1") < len(ROW[9:]):
@@ -191,13 +191,13 @@ def strand_checker(SEQ, ROW, LIST):
         if posCheckplus > 0:
             seqPos = int(ROW[1]) - posCheckplus
             LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[9:]))
-            # orfcount += 1
+            orfcount += 1
 
         # Check to see if (-) strand ORF is found
         elif posCheckneg > 0:
             seqPos = int(ROW[1]) + posCheckneg
             LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[9:]))
-            # orfcount += 1
+            orfcount += 1
         else:
             pass
 
@@ -320,37 +320,37 @@ def popper(LIST):
 def ORFSNuper():
     """Identifies SNPs, extracts their sequences from reference +/- 2 nt and looks for start codons."""
     global potORFs
-    # global orfcount
+    global orfcount
     potORFs = []
     global samples
     with gzip.open(vcf, 'rt')as VCF:
-        # while orfcount < 1001:   # use when debugging
-        for line in VCF:
-            if "##" in line:
-                continue
-            elif "#CHROM" in line:
-                header = line.split()
-                samples = header[9:]
-                popper(RNAsamp_crossref)
-                popper(Ribosamp_crossref)
-            else:
-                columns = line.split()
-
-                # Check to see if it is a SNP
-                if len(columns[3]) and len(columns[4]) == 1:
-
-                    # look for the reference sequence around SNP
-                    seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
-                    seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
-
-                    # iff sequence creates start codon does it make a class instance
-                    strand_checker(seq_step, columns, potORFs)
-                else:
+        while orfcount < 1001:   # use when debugging
+            for line in VCF:
+                if "##" in line:
                     continue
+                elif "#CHROM" in line:
+                    header = line.split()
+                    samples = header[9:]
+                    popper(RNAsamp_crossref)
+                    popper(Ribosamp_crossref)
+                else:
+                    columns = line.split()
+
+                    # Check to see if it is a SNP
+                    if len(columns[3]) and len(columns[4]) == 1:
+
+                        # look for the reference sequence around SNP
+                        seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
+                        seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
+
+                        # iff sequence creates start codon does it make a class instance
+                        strand_checker(seq_step, columns, potORFs)
+                    else:
+                        continue
                     # For debugging
-                    # if orfcount >= 1000:
-                    #     print("orfcount met!")
-                    #     break
+                    if orfcount >= 1000:
+                        print("orfcount met!")
+                        break
 
 
 ORFSNuper()
