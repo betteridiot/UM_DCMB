@@ -30,19 +30,6 @@ class CommentedFile:
         return self
 
 
-sampleGroup = [[row for row in csv.reader(CommentedFile(open(file, "rb")), delimiter='\t')] for file in snp_files]
-x, y = [], []
-for snp in sampleGroup:
-    stepx = [float(sample[2]) for sample in snp]
-    x.append(sum(1 for i in stepx if i > 0.0)/len(stepx))
-    stepy = [float(sample[3]) for sample in snp]
-    y.append(sum(1 for j in stepy if j > 0.0)/len(stepy))
-    # y.extend([float(sample[3])/len(sample[3]) for sample in snp])
-    # x.append(sum(step1)/len(step1))
-
-    # y.append(sum(step2)/len(step2))
-import math
-
 class AnnoteFinder(object):
     """callback for matplotlib to display an annotation when points are
     clicked on.  The point which is closest to the click and within
@@ -131,13 +118,22 @@ def id_generator(size=9, chars=string.ascii_uppercase + string.digits):
     """
     return ''.join(random.choice(chars) for _ in range(size))
 
+sampleGroup = [[row for row in csv.reader(CommentedFile(open(file, "rb")), delimiter='\t')] for file in snp_files]
+lister = []
+for snp in sampleGroup:
+    stepx = [(float(sample[2]), float(sample[3])) for sample in snp]
+    lister.append((sum(1 for i in stepx if i[0] > 0.0)/len(stepx), sum(1 for j in stepx if j[1] > 0.0)/len(stepx)))
+axis = [(snp[0], snp[1]) for snp in lister if snp[0] > .8 and snp[1] > .5]
+x = [x[0] for x in axis]
+y = [y[1] for y in axis]
 
 annotes = [id_generator() for _ in range(len(sampleGroup))]
 fig, ax = plt.subplots()
-ax.scatter(x,y, color='orange', alpha=0.5, linewidths=0.1, edgecolors='black')
+ax.scatter(x,y, color='orange', linewidths=0.1, edgecolors='black')
 ax.set_title("Chr22 100k Test data")
 ax.set_xlabel('%RNA-seq > 0.0')
 ax.set_ylabel('%Ribosome Profiling > 0.0')
 af =  AnnoteFinder(x,y, annotes, ax=ax)
 fig.canvas.mpl_connect('button_press_event', af)
 plt.show()
+

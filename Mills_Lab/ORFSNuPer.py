@@ -371,20 +371,6 @@ def ORFSNuper():
 ORFSNuper()
 
 
-# Make a unique filename for each SNP written
-# def id_generator(size=7, chars=string.ascii_uppercase + string.digits):
-#     """Creates a random alphanumeric id each time it is called.
-#
-#     Args:
-#         size (int): what is the desired size of the ID string
-#         chars (str): What values the function can choose from
-#
-#     Returns:
-#         A pseudo-random alphanumeric ID
-#     """
-#     return ''.join(random.choice(chars) for _ in range(size))+".snp"
-
-
 def file_writer(POTORF):
     """Outputs a file to outputDir based on the object that is passed to it
 
@@ -449,6 +435,7 @@ pool.map(lambda obj: file_writer(obj), potORFs)
 pool.close()
 pool.join()
 
+# Writes a master file containing metadata for each SNP
 with open(outDir+"metadata", 'w') as meta:
     header = ["#CHROM_SNPPOSITION", "%Samples_with_RNA-FPKM", "%Samples_with_ribo-FPKM"]
     print('\t'.join(header), file=meta)
