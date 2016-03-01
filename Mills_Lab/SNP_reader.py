@@ -118,16 +118,22 @@ def id_generator(size=9, chars=string.ascii_uppercase + string.digits):
     """
     return ''.join(random.choice(chars) for _ in range(size))
 
-sampleGroup = [[row for row in csv.reader(CommentedFile(open(file, "rb")), delimiter='\t')] for file in snp_files]
-lister = []
+sampleGroup = [(file.replace(path_name,"").replace(".snp",""), [row for row in csv.reader(CommentedFile(open(file, "rb"))
+                                                                       , delimiter='\t')]) for file in snp_files]
+
+SNP_IDs = [snp[0] for snp in sampleGroup]
+percents = []
 for snp in sampleGroup:
-    stepx = [(float(sample[2]), float(sample[3])) for sample in snp]
-    lister.append((sum(1 for i in stepx if i[0] > 0.0)/len(stepx), sum(1 for j in stepx if j[1] > 0.0)/len(stepx)))
-axis = [(snp[0], snp[1]) for snp in lister if snp[0] > .8 and snp[1] > .5]
+    stepx = [(float(samples[2]), float(samples[3])) for samples in snp[1] if snp[1]]
+    percents.append((sum(1 for i in stepx if i[0] > 0.0)/len(stepx), sum(1 for j in stepx if j[1] > 0.0)/len(stepx)))
+SNP_list = zip(SNP_IDs, percents)
+# Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
+axis = [(snp[1][0], snp[1][1]) for snp in SNP_list if snp[1][0] > 0.0 and snp[1][1] > 0.0]
+annotes = [snp[0] for snp in SNP_list if snp[1][0] > 0.0 and snp[1][1] > 0.0]
 x = [x[0] for x in axis]
 y = [y[1] for y in axis]
 
-annotes = [id_generator() for _ in range(len(sampleGroup))]
+# Plots the points above, and can be used to tie in individual SNP IDs
 fig, ax = plt.subplots()
 ax.scatter(x,y, color='orange', linewidths=0.1, edgecolors='black')
 ax.set_title("Chr22 100k Test data")
