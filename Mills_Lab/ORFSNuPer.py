@@ -53,7 +53,7 @@ startTime, startasc = time.time(), time.asctime()
 # reference = args.ref
 # threshold = args.threshold
 reference = '/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes'
-vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/testing.vcf.gz'
+vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz'
 RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
 riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
 outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
@@ -413,21 +413,46 @@ def file_writer(POTORF):
     except TypeError:
         pass
 
-
-# Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
-# indexer = []
-# for object in range(len(potORFs)):
-#     if potORFs[object].RNAcount == None:
-#         indexer.append(object)
-# for index in indexer[::-1]:
-#         del potORFs[index]
-
 pool = ThreadPool()
-pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
+pool.map(lambda obj: obj.lookUp(), potORFs)
 pool.close()
 pool.join()
 del pool
-#
+
+# Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
+indexer = []
+for object in range(len(potORFs)):
+    if not potORFs[object].upcheck:
+        indexer.append(object)
+for index in indexer[::-1]:
+        del potORFs[index]
+print(len(potORFs))
+pool = ThreadPool()
+pool.map(lambda obj: obj.lookDown(), potORFs)
+pool.close()
+pool.join()
+del pool
+print(len(potORFs))
+indexer = []
+for object in range(len(potORFs)):
+    if not potORFs[object].downcheck:
+        indexer.append(object)
+for index in indexer[::-1]:
+        del potORFs[index]
+print(len(potORFs))
+pool = ThreadPool()
+pool.map(lambda obj: obj.WordCount(), potORFs)
+pool.close()
+pool.join()
+del pool
+
+indexer = []
+for object in range(len(potORFs)):
+    if potORFs[object].RNAcount == None:
+        indexer.append(object)
+for index in indexer[::-1]:
+        del potORFs[index]
+print(len(potORFs))
 # pool = ThreadPool()
 # pool.map(lambda obj: file_writer(obj), potORFs)
 # pool.close()
