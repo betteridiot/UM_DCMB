@@ -58,7 +58,7 @@ RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
 riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
 outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
 threshold = 3000
-orfcount = 0  # use when debugging
+# orfcount = 0  # use when debugging
 # ARGPARSE END
 
 # Adding in ribosome sample name to SRA ID file
@@ -183,7 +183,7 @@ def strand_checker(SEQ, ROW, LIST):
         LIST (list): the list that will hold the generated potORFs
     """
 
-    global orfcount
+    # global orfcount
     posCheckplus = sum([SEQ.find(codon) for codon in plusStart if codon in SEQ])+1
     posCheckneg = sum([SEQ.find(codon) for codon in negStart if codon in SEQ])+1
     if not 1 <= ROW.count("1|1") < len(ROW[9:]):
@@ -415,6 +415,8 @@ def file_writer(POTORF):
     except TypeError:
         pass
 
+
+print('\t'.join([time.asctime() + ":",str(len(potORFs)),"Start codons only"]))
 pool = ThreadPool()
 pool.map(lambda obj: obj.lookUp(), potORFs)
 pool.close()
@@ -428,14 +430,13 @@ for object in range(len(potORFs)):
         indexer.append(object)
 for index in indexer[::-1]:
         del potORFs[index]
-print(len(potORFs))
+print('\t'.join([time.asctime() + ":",str(len(potORFs)),"ORFs with upstream stop codons"]))
 
 pool = ThreadPool()
 pool.map(lambda obj: obj.lookDown(), potORFs)
 pool.close()
 pool.join()
 del pool
-print(len(potORFs))
 
 indexer = []
 for object in range(len(potORFs)):
@@ -443,8 +444,8 @@ for object in range(len(potORFs)):
         indexer.append(object)
 for index in indexer[::-1]:
         del potORFs[index]
+print('\t'.join([time.asctime() + ":",str(len(potORFs)),"ORFs with downstream stop codons"]))
 
-print(len(potORFs))
 pool = ThreadPool()
 pool.map(lambda obj: obj.WordCount(), potORFs)
 pool.close()
@@ -457,7 +458,7 @@ for object in range(len(potORFs)):
         indexer.append(object)
 for index in indexer[::-1]:
         del potORFs[index]
-print(len(potORFs))
+print('\t'.join([time.asctime() + ":",str(len(potORFs)),"ORFs with RNA-seq FPKMs > 1"]))
 
 
 pool = ThreadPool()
