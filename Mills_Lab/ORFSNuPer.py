@@ -53,7 +53,7 @@ startTime, startasc = time.time(), time.asctime()
 # reference = args.ref
 # threshold = args.threshold
 reference = '/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes'
-vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz'
+vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/testing.vcf.gz'
 RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
 riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
 outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
@@ -152,6 +152,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
     if RNAorRIBO and max(samplereads) < 1:
         return None
     else:
+        # print("Good read count ORF")
         return samplereads
 
 
@@ -191,13 +192,13 @@ def strand_checker(SEQ, ROW, LIST):
         if posCheckplus > 0:
             seqPos = int(ROW[1]) - posCheckplus
             LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[9:]))
-            orfcount += 1
+            # orfcount += 1
 
         # Check to see if (-) strand ORF is found
         elif posCheckneg > 0:
             seqPos = int(ROW[1]) + posCheckneg
             LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[9:]))
-            orfcount += 1
+            # orfcount += 1
         else:
             pass
 
@@ -280,6 +281,7 @@ class potORF(object):
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
                 if self.RNAcount is None:
+                    # print("Bad pos ORF")
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
@@ -289,6 +291,7 @@ class potORF(object):
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
                 if self.RNAcount is None:
+                    # print("Bad neg ORF")
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
@@ -316,41 +319,52 @@ def popper(LIST):
         LIST.pop(i)
 
 
+# def file_len():
+#     with gzip.open(vcf) as f:
+#         for i, l in enumerate(f):
+#             pass
+#     return i + 1
+# file_len()
+
+
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     """Identifies SNPs, extracts their sequences from reference +/- 2 nt and looks for start codons."""
     global potORFs
-    global orfcount
+    # global orfcount
     potORFs = []
+    global linecount
+    linecount = 0
     global samples
     with gzip.open(vcf, 'rt')as VCF:
-        while orfcount < 1001:   # use when debugging
-            for line in VCF:
-                if "##" in line:
-                    continue
-                elif "#CHROM" in line:
-                    header = line.split()
-                    samples = header[9:]
-                    popper(RNAsamp_crossref)
-                    popper(Ribosamp_crossref)
+        # while orfcount <= 49:   # use when debugging
+        for line in VCF:
+            linecount += 1
+            if "##" in line:
+                continue
+            elif "#CHROM" in line:
+                header = line.split()
+                samples = header[9:]
+                popper(RNAsamp_crossref)
+                popper(Ribosamp_crossref)
+            else:
+                columns = line.split()
+
+                # Check to see if it is a SNP
+                if len(columns[3]) and len(columns[4]) == 1:
+
+                    # look for the reference sequence around SNP
+                    seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
+                    seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
+
+                    # iff sequence creates start codon does it make a class instance
+                    strand_checker(seq_step, columns, potORFs)
                 else:
-                    columns = line.split()
-
-                    # Check to see if it is a SNP
-                    if len(columns[3]) and len(columns[4]) == 1:
-
-                        # look for the reference sequence around SNP
-                        seq = SNP_search(columns[0], int(columns[1]) - 2, int(columns[1]) + 2)
-                        seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
-
-                        # iff sequence creates start codon does it make a class instance
-                        strand_checker(seq_step, columns, potORFs)
-                    else:
-                        continue
-                    # For debugging
-                    if orfcount >= 1000:
-                        print("orfcount met!")
-                        break
+                    continue
+                # For debugging
+                # if orfcount >= 50:
+                #     print("orfcount met!")
+                #     break
 
 
 ORFSNuper()
@@ -413,15 +427,15 @@ pool.map(lambda obj: obj.lookUp().lookDown().WordCount(), potORFs)
 pool.close()
 pool.join()
 del pool
+#
+# pool = ThreadPool()
+# pool.map(lambda obj: file_writer(obj), potORFs)
+# pool.close()
+# pool.join()
 
-pool = ThreadPool()
-pool.map(lambda obj: file_writer(obj), potORFs)
-pool.close()
-pool.join()
-
-# # Write each SNP to file
-# for SNP in potORFs:
-#     file_writer(SNP)
+# Write each SNP to file
+for SNP in potORFs:
+    file_writer(SNP)
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
