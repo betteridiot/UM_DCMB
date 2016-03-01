@@ -285,6 +285,7 @@ class potORF(object):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
+                    print("Potential ORF found")
 
             else:  # is it a (-) strand?
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
@@ -295,6 +296,7 @@ class potORF(object):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
+                    print("Potential ORF found")
 
 
 # Removes bams from the list to be checked if they are not in the samples of the vcf
@@ -427,18 +429,21 @@ for object in range(len(potORFs)):
 for index in indexer[::-1]:
         del potORFs[index]
 print(len(potORFs))
+
 pool = ThreadPool()
 pool.map(lambda obj: obj.lookDown(), potORFs)
 pool.close()
 pool.join()
 del pool
 print(len(potORFs))
+
 indexer = []
 for object in range(len(potORFs)):
     if not potORFs[object].downcheck:
         indexer.append(object)
 for index in indexer[::-1]:
         del potORFs[index]
+
 print(len(potORFs))
 pool = ThreadPool()
 pool.map(lambda obj: obj.WordCount(), potORFs)
@@ -453,14 +458,16 @@ for object in range(len(potORFs)):
 for index in indexer[::-1]:
         del potORFs[index]
 print(len(potORFs))
-# pool = ThreadPool()
-# pool.map(lambda obj: file_writer(obj), potORFs)
-# pool.close()
-# pool.join()
 
-# Write each SNP to file
-for SNP in potORFs:
-    file_writer(SNP)
+
+pool = ThreadPool()
+pool.map(lambda obj: file_writer(obj), potORFs)
+pool.close()
+pool.join()
+
+# # Write each SNP to file
+# for SNP in potORFs:
+#     file_writer(SNP)
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
