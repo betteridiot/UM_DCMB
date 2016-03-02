@@ -37,7 +37,7 @@ startTime, startasc = time.time(), time.asctime()
 # parser.add_argument('-t', action='store', dest='threshold', type=int, help='Up/downstream threshold', default=3000)
 # # Define your output filename and directory
 # parser.add_argument('-o', action='store', dest='output', help='Set output filename',
-#                     default='/home/mdsherm/Project/SNuPer_results/pythonTest')
+#                     default='/home/mdsherm/Project/SNuPer_results/pythonTest/')
 # # Where are the ribosome profiling BAM files
 # parser.add_argument('--ribosome', action='store', dest='ribo', help='Directory of Ribosomal BAM files',
 #                     default='/home/mdsherm/Rotation/ribosomal/bwa_alignment')
@@ -241,7 +241,10 @@ class potORF(object):
         self.upcheck, self.downcheck = False, False
         self.upPos, self.downPos = [], []
         self.RNAcount, self.ribocount = None, None
-        self.RNApercent, self.ribopercent = 0, 0
+        self.RNApercent_0, self.ribopercent_0 = 0, 0
+        self.RNApercent_1, self.ribopercent_1 = 0, 0
+        self.RNApercent_5, self.ribopercent_5 = 0, 0
+        self.RNApercent_10, self.ribopercent_10 = 0, 0
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
@@ -302,8 +305,14 @@ class potORF(object):
         return self
 
     def metadata(self):
-        self.RNApercent = sum(1 for value in self.RNAcount if value > float(0))/len(self.RNAcount)
-        self.ribopercent = sum(1 for value in self.ribocount if value > float(0))/len(self.ribocount)
+        self.RNApercent_0 = sum(1 for value in self.RNAcount if value > float(0))/len(self.RNAcount)
+        self.ribopercent_0 = sum(1 for value in self.ribocount if value > float(0))/len(self.ribocount)
+        self.RNApercent_1 = sum(1 for value in self.RNAcount if value > 1)/len(self.RNAcount)
+        self.ribopercent_1 = sum(1 for value in self.ribocount if value > 1)/len(self.ribocount)
+        self.RNApercent_5 = sum(1 for value in self.RNAcount if value > 5)/len(self.RNAcount)
+        self.ribopercent_5 = sum(1 for value in self.ribocount if value > 5)/len(self.ribocount)
+        self.RNApercent_10 = sum(1 for value in self.RNAcount if value > 10)/len(self.RNAcount)
+        self.ribopercent_10 = sum(1 for value in self.ribocount if value > 10)/len(self.ribocount)
 
 
 # Removes bams from the list to be checked if they are not in the samples of the vcf
@@ -439,8 +448,12 @@ pool.join()
 with open(outDir+"metadata", 'w') as meta:
     header = ["#CHROM_SNPPOSITION", "%Samples_with_RNA-FPKM", "%Samples_with_ribo-FPKM"]
     print('\t'.join(header), file=meta)
-    metadata = [[str(snp.chrom) + "_" + str(snp.SNPpos), str(snp.RNApercent), str(snp.ribopercent)] for snp in potORFs]
-    meta.write('\n'.join('%s\t%s\t%s' % x for x in metadata))
+    metadata = [[str(snp.chrom) + "_" + str(snp.SNPpos),
+                 str(snp.RNApercent_0), str(snp.ribopercent_0),
+                 str(snp.RNApercent_1), str(snp.ribopercent_1),
+                 str(snp.RNApercent_5), str(snp.ribopercent_5),
+                 str(snp.RNApercent_10), str(snp.ribopercent_10)] for snp in potORFs]
+    meta.write('\n'.join('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % x for x in metadata))
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
