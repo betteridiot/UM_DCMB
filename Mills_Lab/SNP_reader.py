@@ -105,37 +105,38 @@ class AnnoteFinder(object):
         for x, y, a in annotesToDraw:
             self.drawAnnote(self.ax, x, y, a)
 
-# Make a unique filename for each SNP written
-def id_generator(size=9, chars=string.ascii_uppercase + string.digits):
-    """Creates a random alphanumeric id each time it is called.
-
-    Args:
-        size (int): what is the desired size of the ID string
-        chars (str): What values the function can choose from
-
-    Returns:
-        A pseudo-random alphanumeric ID
-    """
-    return ''.join(random.choice(chars) for _ in range(size))
 
 sampleGroup = [(file.replace(path_name,"").replace(".snp",""), [row for row in csv.reader(CommentedFile(open(file, "rb"))
                                                                        , delimiter='\t')]) for file in snp_files]
 
+
+def meta_list(LIST):
+    try:
+        output = (sum(1 for rna in LIST if rna[0] > 0.0)/len(LIST), sum(1 for ribo in LIST if ribo[1] > 5)/len(LIST))
+        return output
+    except ZeroDivisionError:
+        return 0
+
+
 SNP_IDs = [snp[0] for snp in sampleGroup]
 percents = []
 for snp in sampleGroup:
-    stepx = [(float(samples[2]), float(samples[3])) for samples in snp[1] if snp[1]]
-    percents.append((sum(1 for i in stepx if i[0] > 0.0)/len(stepx), sum(1 for j in stepx if j[1] > 0.0)/len(stepx)))
+    step = [(float(samples[2]), float(samples[3])) for samples in snp[1]]
+    # step_ref = [(float(samples[2]), float(samples[3])) for samples in snp[1] if samples[1] == "0|0"]
+    # step_alt = [(float(samples[2]), float(samples[3])) for samples in snp[1] if samples[1] == "1|1"]
+    # step_het = [(float(samples[2]), float(samples[3])) for samples in snp[1] if samples[1] == ("0|1" or "1|0")]
+    # percents.append((meta_list(step_ref), meta_list(step_alt), meta_list(step_het)))
+    percents.append((sum(1 for rna in step if rna[0] > 0.0)/len(step), sum(1 for ribo in step if ribo[1] > 5)/len(step)))
 SNP_list = zip(SNP_IDs, percents)
 # Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
-axis = [(snp[1][0], snp[1][1]) for snp in SNP_list if snp[1][0] > 0.0 and snp[1][1] > 0.0]
-annotes = [snp[0] for snp in SNP_list if snp[1][0] > 0.0 and snp[1][1] > 0.0]
+axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
+annotes = [snp[0] for snp in SNP_list]
 x = [x[0] for x in axis]
 y = [y[1] for y in axis]
 
 # Plots the points above, and can be used to tie in individual SNP IDs
 fig, ax = plt.subplots()
-ax.scatter(x,y, color='orange', linewidths=0.1, edgecolors='black')
+ax.scatter(x,y, color='orange', s=50, linewidths=0.1, edgecolors='black')
 ax.set_title("Chr22 100k Test data")
 ax.set_xlabel('%RNA-seq > 0.0')
 ax.set_ylabel('%Ribosome Profiling > 0.0')
