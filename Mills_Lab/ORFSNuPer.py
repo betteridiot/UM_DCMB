@@ -305,14 +305,17 @@ class potORF(object):
         return self
 
     def metadata(self):
-        self.RNApercent_0 = sum(1 for value in self.RNAcount if value > float(0))/len(self.RNAcount)
-        self.ribopercent_0 = sum(1 for value in self.ribocount if value > float(0))/len(self.ribocount)
-        self.RNApercent_1 = sum(1 for value in self.RNAcount if value > 1)/len(self.RNAcount)
-        self.ribopercent_1 = sum(1 for value in self.ribocount if value > 1)/len(self.ribocount)
-        self.RNApercent_5 = sum(1 for value in self.RNAcount if value > 5)/len(self.RNAcount)
-        self.ribopercent_5 = sum(1 for value in self.ribocount if value > 5)/len(self.ribocount)
-        self.RNApercent_10 = sum(1 for value in self.RNAcount if value > 10)/len(self.RNAcount)
-        self.ribopercent_10 = sum(1 for value in self.ribocount if value > 10)/len(self.ribocount)
+        if self.RNAcount is not None:
+            self.RNApercent_0 = sum(1 for value in self.RNAcount if value > float(0))/len(self.RNAcount)
+            self.ribopercent_0 = sum(1 for value in self.ribocount if value > float(0))/len(self.ribocount)
+            self.RNApercent_1 = sum(1 for value in self.RNAcount if value > 1)/len(self.RNAcount)
+            self.ribopercent_1 = sum(1 for value in self.ribocount if value > 1)/len(self.ribocount)
+            self.RNApercent_5 = sum(1 for value in self.RNAcount if value > 5)/len(self.RNAcount)
+            self.ribopercent_5 = sum(1 for value in self.ribocount if value > 5)/len(self.ribocount)
+            self.RNApercent_10 = sum(1 for value in self.RNAcount if value > 10)/len(self.RNAcount)
+            self.ribopercent_10 = sum(1 for value in self.ribocount if value > 10)/len(self.ribocount)
+        else:
+            pass
 
 
 # Removes bams from the list to be checked if they are not in the samples of the vcf
@@ -452,8 +455,10 @@ with open(outDir+"metadata", 'w') as meta:
                  str(snp.RNApercent_0), str(snp.ribopercent_0),
                  str(snp.RNApercent_1), str(snp.ribopercent_1),
                  str(snp.RNApercent_5), str(snp.ribopercent_5),
-                 str(snp.RNApercent_10), str(snp.ribopercent_10)] for snp in potORFs]
-    meta.write('\n'.join('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % x for x in metadata))
+                 str(snp.RNApercent_10), str(snp.ribopercent_10)] for snp in potORFs if snp.RNAcount is not None]
+    writer = csv.writer(meta, delimiter='\t')
+    writer.writerow(metadata)
+    # meta.write('\n'.join('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % x for x in metadata))
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
