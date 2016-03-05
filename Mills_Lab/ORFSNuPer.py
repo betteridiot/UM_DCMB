@@ -425,6 +425,7 @@ def file_writer(POTORF):
         pass
 
 def threadpool():
+    """Takes each sublist of potORFs and sends each potORF to multiprocessing"""
     global potORFs
     cmd_lst = ['obj.lookUp()', 'obj.lookDown', 'obj.WordCount()', 'obj.metadata()', 'file_writer(obj)']
     step = 1
@@ -445,6 +446,7 @@ def threadpool():
 
 
 threadpool()
+# Flatten potORFs
 potORFs = [snp for sublist in potORFs for snp in sublist]
 
 # Writes a master file containing metadata for each SNP
