@@ -7,6 +7,7 @@ import glob
 import time
 import argparse
 import csv
+import numpy as np
 # import string
 # import random
 from multiprocessing.dummy import Pool as ThreadPool
@@ -230,14 +231,14 @@ class potORF(object):
         self.SNPpos = SNP_POS
         self.genotypes = GENO
         self.length = 0
-        self.up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
+        up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.start) - threshold, int(self.start) - 1))
-        self.up.readline()
-        self.up = ((self.up.read()).rstrip()).upper().replace('\n', '')
-        self.down = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
+        up.readline()
+        self.up = ((up.read()).rstrip()).upper().replace('\n', '')
+        down = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.end) + 1, int(self.end) + threshold))
-        self.down.readline()
-        self.down = ((self.down.read()).rstrip()).upper().replace('\n', '')
+        down.readline()
+        self.down = ((down.read()).rstrip()).upper().replace('\n', '')
         self.upcheck, self.downcheck = False, False
         self.upPos, self.downPos = [], []
         self.RNAcount, self.ribocount = None, None
@@ -340,6 +341,16 @@ def popper(LIST):
         LIST.pop(i)
 
 
+def modulo_check(LIST):
+    mod_check = []
+    for i in range(1,8):
+        if len(LIST) % i is 0:
+            mod_check.append(i)
+        else:
+            pass
+    return max(mod_check)
+
+
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     """Identifies SNPs, extracts their sequences from reference +/- 2 nt and looks for start codons."""
@@ -378,6 +389,7 @@ def ORFSNuper():
                 # if orfcount >= 50:
                 #     print("orfcount met!")
                 #     break
+    potORFs = np.split(np.asarray(potORFs), modulo_check(potORFs))
 
 
 ORFSNuper()
@@ -412,40 +424,28 @@ def file_writer(POTORF):
     except TypeError:
         pass
 
+def threadpool():
+    global potORFs
+    cmd_lst = ['obj.lookUp()', 'obj.lookDown', 'obj.WordCount()', 'obj.metadata()', 'file_writer(obj)']
+    step = 1
+    for sublist in potORFs:
+        for cmd in cmd_lst:
+            pool = ThreadPool()
+            exec('pool.map(lambda obj: %s , sublist)' % (cmd))
+            pool.close()
+            pool.join()
+            del pool
+            if step is 1:
+                sublist = [snp for snp in sublist if snp.upcheck]
+            elif step is 2:
+                sublist = [snp for snp in sublist if snp.downcheck]
+            elif step is 3:
+                sublist = [snp for snp in sublist if snp.RNAcount is not None]
+            step += 1
 
-print('\t'.join([time.asctime() + ":", str(len(potORFs)), "Start codons only"]))
-pool = ThreadPool()
-pool.map(lambda obj: obj.lookUp(), potORFs)
-pool.close()
-pool.join()
-del pool
 
-# Look upstream and downstream for stop codons and read count of ribosome/RNA bam files by class instance multithreading
-potORFs = [snp for snp in potORFs if snp.upcheck]
-print('\t'.join([time.asctime() + ":", str(len(potORFs)), "ORFs with upstream stop codons"]))
-
-pool = ThreadPool()
-pool.map(lambda obj: obj.lookDown(), potORFs)
-pool.close()
-pool.join()
-del pool
-
-potORFs = [snp for snp in potORFs if snp.downcheck]
-print('\t'.join([time.asctime() + ":", str(len(potORFs)), "ORFs with downstream stop codons"]))
-
-pool = ThreadPool()
-pool.map(lambda obj: obj.WordCount().metadata(), potORFs)
-pool.close()
-pool.join()
-del pool
-
-potORFs = [snp for snp in potORFs if snp.RNAcount is not None]
-print('\t'.join([time.asctime() + ":", str(len(potORFs)), "ORFs with an RNA-seq FPKM > 1"]))
-
-pool = ThreadPool()
-pool.map(lambda obj: file_writer(obj), potORFs)
-pool.close()
-pool.join()
+threadpool()
+potORFs = [snp for sublist in potORFs for snp in sublist]
 
 # Writes a master file containing metadata for each SNP
 with open(outDir+"metadata", 'w') as meta:
@@ -458,7 +458,6 @@ with open(outDir+"metadata", 'w') as meta:
                  str(snp.RNApercent_10), str(snp.ribopercent_10)] for snp in potORFs if snp.RNAcount is not None]
     writer = csv.writer(meta, delimiter='\t')
     writer.writerow(metadata)
-    # meta.write('\n'.join('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % x for x in metadata))
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
