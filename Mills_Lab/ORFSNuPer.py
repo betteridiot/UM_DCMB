@@ -425,21 +425,15 @@ def file_writer(POTORF):
         pass
 
 
-def threadpool(LIST, CMD):
-    """Takes each sublist of potORFs and sends each potORF to multiprocessing"""
-    pool = ThreadPool()
-    exec('pool.map(lambda obj: %s , LIST)' % (CMD))
-    pool.close()
-    pool.join()
-    del pool
-    return LIST
-
-
 cmd_lst = ['obj.lookUp()', 'obj.lookDown', 'obj.WordCount()', 'obj.metadata()', 'file_writer(obj)']
 for i in range(len(potORFs)):
     step = 1
     for cmd in cmd_lst:
-        potORFs[i] = threadpool(potORFs[i], cmd)
+        pool = ThreadPool()
+        exec('pool.map(lambda obj: %s , potORFs[i])' % (cmd))
+        pool.close()
+        pool.join()
+        del pool
         if step is 1:
             potORFs[i] = [snp for snp in potORFs[i] if snp.upcheck]
         elif step is 2:
