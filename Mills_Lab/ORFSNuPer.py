@@ -453,15 +453,16 @@ potORFs = [snp for sublist in potORFs for snp in sublist]
 
 # Writes a master file containing metadata for each SNP
 with open(outDir+"metadata", 'w') as meta:
-    header = ["#CHROM_SNPPOSITION", "%Samples_with_RNA-FPKM", "%Samples_with_ribo-FPKM"]
-    print('\t'.join(header), file=meta)
+    writer = csv.writer(meta, delimiter='\t')
+    header = ["#CHROM_SNPPOSITION", "%RNA-FPKM>0", "%ribo-FPKM>0", "%RNA-FPKM>1",
+              "%ribo-FPKM>1","%RNA-FPKM>5", "%ribo-FPKM>5","%RNA-FPKM>10", "%ribo-FPKM>10",]
+    writer.writerow(header)
     metadata = [[str(snp.chrom) + "_" + str(snp.SNPpos),
                  str(snp.RNApercent_0), str(snp.ribopercent_0),
                  str(snp.RNApercent_1), str(snp.ribopercent_1),
                  str(snp.RNApercent_5), str(snp.ribopercent_5),
                  str(snp.RNApercent_10), str(snp.ribopercent_10)] for snp in potORFs if snp.RNAcount is not None]
-    writer = csv.writer(meta, delimiter='\t')
-    writer.writerow(metadata)
+    writer.writerows(metadata)
 
 # find out how long the process took
 endTime, endasc = time.time(), time.asctime()
