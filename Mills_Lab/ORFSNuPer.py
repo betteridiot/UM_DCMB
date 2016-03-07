@@ -424,28 +424,30 @@ def file_writer(POTORF):
     except TypeError:
         pass
 
-def threadpool():
+
+def threadpool(LIST, CMD):
     """Takes each sublist of potORFs and sends each potORF to multiprocessing"""
-    global potORFs
-    cmd_lst = ['obj.lookUp()', 'obj.lookDown', 'obj.WordCount()', 'obj.metadata()', 'file_writer(obj)']
+    pool = ThreadPool()
+    exec('pool.map(lambda obj: %s , LIST)' % (CMD))
+    pool.close()
+    pool.join()
+    del pool
+    return LIST
+
+
+cmd_lst = ['obj.lookUp()', 'obj.lookDown', 'obj.WordCount()', 'obj.metadata()', 'file_writer(obj)']
+for i in range(len(potORFs)):
     step = 1
-    for sublist in potORFs:
-        for cmd in cmd_lst:
-            pool = ThreadPool()
-            exec('pool.map(lambda obj: %s , sublist)' % (cmd))
-            pool.close()
-            pool.join()
-            del pool
-            if step is 1:
-                sublist = [snp for snp in sublist if snp.upcheck]
-            elif step is 2:
-                sublist = [snp for snp in sublist if snp.downcheck]
-            elif step is 3:
-                sublist = [snp for snp in sublist if snp.RNAcount is not None]
-            step += 1
+    for cmd in cmd_lst:
+        potORFs[i] = threadpool(potORFs[i], cmd)
+        if step is 1:
+            potORFs[i] = [snp for snp in potORFs[i] if snp.upcheck]
+        elif step is 2:
+            potORFs[i] = [snp for snp in potORFs[i] if snp.downcheck]
+        elif step is 3:
+            potORFs[i] = [snp for snp in potORFs[i] if snp.RNAcount is not None]
+        step += 1
 
-
-threadpool()
 # Flatten potORFs
 potORFs = [snp for sublist in potORFs for snp in sublist]
 
