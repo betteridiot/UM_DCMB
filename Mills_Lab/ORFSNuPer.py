@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from __future__ import print_function
+import sys
 import os
 import gzip
 import glob
@@ -60,7 +61,7 @@ threshold = args.threshold
 # riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
 # outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
 # threshold = 3000
-# orfcount = 0  # use when debugging
+orfcount = 0  # use when debugging
 # ARGPARSE END
 
 # Adding in ribosome sample name to SRA ID file
@@ -231,7 +232,6 @@ class potORF(object):
         self.strand = STRAND
         self.SNPpos = SNP_POS
         self.genotypes = GENO
-        self.length = 0
         up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.start) - threshold, int(self.start) - 1))
         up.readline()
@@ -241,15 +241,11 @@ class potORF(object):
         down.readline()
         self.down = ((down.read()).rstrip()).upper().replace('\n', '')
         self.upcheck, self.downcheck = False, False
-        self.upPos, self.downPos = [], []
-        self.RNAcount, self.ribocount = None, None
-        self.RNApercent_0, self.ribopercent_0 = 0, 0
-        self.RNApercent_1, self.ribopercent_1 = 0, 0
-        self.RNApercent_5, self.ribopercent_5 = 0, 0
-        self.RNApercent_10, self.ribopercent_10 = 0, 0
+
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
+        self.upPos = []
         codonCount = 0
         if self.strand:
             stops = plusStops
@@ -265,6 +261,7 @@ class potORF(object):
 
     # check to see if a stop codon is within downsteam sequence (upstream if (-) strand)
     def lookDown(self):
+        self.downPos = []
         codonCount = 0
         if self.strand:
             stops = plusStops
@@ -280,6 +277,7 @@ class potORF(object):
 
     # Looks at all specified BAM files and determine the number of reads found in a given region and corrects for length
     def WordCount(self):
+        global orfcount
         """Looks at all specified BAM files and determine the number of reads
          found in a given region and corrects for length."""
         if self.upcheck and self.downcheck:
@@ -288,34 +286,32 @@ class potORF(object):
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
                 if self.RNAcount is None:
-                    # print("Bad pos ORF")
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
-                    print("Potential ORF found")
+                    orfcount += 1
 
             else:  # is it a (-) strand?
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
                 self.length = end-begin
                 self.RNAcount = readCheck(True, int(self.chrom), begin, end, self.length)
                 if self.RNAcount is None:
-                    # print("Bad neg ORF")
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
-                    print("Potential ORF found")
+                    orfcount += 1
         return self
 
     def metadata(self):
         if self.RNAcount is not None:
-            self.RNApercent_0 = sum(1 for value in self.RNAcount if value > float(0))/len(self.RNAcount)
-            self.ribopercent_0 = sum(1 for value in self.ribocount if value > float(0))/len(self.ribocount)
-            self.RNApercent_1 = sum(1 for value in self.RNAcount if value > 1)/len(self.RNAcount)
-            self.ribopercent_1 = sum(1 for value in self.ribocount if value > 1)/len(self.ribocount)
-            self.RNApercent_5 = sum(1 for value in self.RNAcount if value > 5)/len(self.RNAcount)
-            self.ribopercent_5 = sum(1 for value in self.ribocount if value > 5)/len(self.ribocount)
-            self.RNApercent_10 = sum(1 for value in self.RNAcount if value > 10)/len(self.RNAcount)
-            self.ribopercent_10 = sum(1 for value in self.ribocount if value > 10)/len(self.ribocount)
+            self.RNApercent_0 = sum(value > 0 for value in self.RNAcount)/float(len(self.RNAcount))
+            self.ribopercent_0 = sum(value > 0 for value in self.ribocount)/float(len(self.ribocount))
+            self.RNApercent_1 = sum(value > 1 for value in self.RNAcount)/float(len(self.RNAcount))
+            self.ribopercent_1 = sum(value > 1 for value in self.ribocount)/float(len(self.ribocount))
+            self.RNApercent_5 = sum(value > 5 for value in self.RNAcount)/float(len(self.RNAcount))
+            self.ribopercent_5 = sum(value > 5 for value in self.ribocount)/float(len(self.ribocount))
+            self.RNApercent_10 = sum(value > 10 for value in self.RNAcount)/float(len(self.RNAcount))
+            self.ribopercent_10 = sum(value > 10 for value in self.ribocount)/float(len(self.ribocount))
         else:
             pass
 
@@ -356,7 +352,7 @@ def modulo_check(LIST):
 def ORFSNuper():
     """Identifies SNPs, extracts their sequences from reference +/- 2 nt and looks for start codons."""
     global pre_potORFs
-    # global orfcount
+    global orfcount
     pre_potORFs = []
     global linecount
     linecount = 0
@@ -395,6 +391,7 @@ def ORFSNuper():
 ORFSNuper()
 dill.dump(pre_potORFs, open(outDir + "pre_potORFs.pkl", 'wb'))
 potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
+potORFs = [potORFs[i].tolist() for i in range(len(potORFs))]
 
 def file_writer(LIST):
     """Outputs a file to outputDir based on the object that is passed to it
@@ -427,32 +424,34 @@ def file_writer(LIST):
             pass
 
 
+def threader(LIST, STEP):
+    cmd_lst = ['obj.lookUp()', 'obj.lookDown()', 'obj.WordCount()', 'obj.metadata()']
+    pool = ThreadPool()
+    exec('pool.map(lambda obj: %s , tmp1)' %(cmd_lst[step]))
+    pool.close()
+    pool.join()
+
+
+def dumper(LIST, lst_NUM, STEP, OUT):
+    dump = LIST
+    dill.dump(dump, open('%s%s%s%s', 'wb') %(outDir, str(lst_NUM), str(STEP), OUT))
+
+
 tmp2 = []
-cmd_lst = ['obj.lookUp()', 'obj.lookDown()', 'obj.WordCount()', 'obj.metadata()']
 for i in range(len(potORFs)):
     step = 0
     tmp1 = potORFs[i]
-    for cmd in cmd_lst:
-        step += 1
-        pool = ThreadPool()
-        exec('pool.map(lambda obj: %s , tmp1)' %(cmd))
-        pool.close()
-        pool.join()
-        if step is 1:
-            tmp1 = [snp for snp in tmp1 if snp.upcheck]
-            dump = tmp1
-            dill.dump(dump, open(outDir + str(i) + str(step) + "UPpotORFs.pkl", 'wb'))
-        elif step is 2:
-            tmp1 = [snp for snp in tmp1 if snp.downcheck]
-            dump = tmp1
-            dill.dump(dump, open(outDir + str(i) + str(step) + "DWNpotORFs.pkl", 'wb'))
-        elif step is 3:
-            tmp2.extend([snp for snp in tmp1 if snp.RNAcount is not None])
-            dump = tmp2
-            dill.dump(dump, open(outDir + str(i) +  str(step) + "COUNTpotORFs.pkl", 'wb'))
-        else:
-            pass
-
+    threader(tmp1, 0)
+    tmp1 = [snp for snp in tmp1 if snp.upcheck]
+    dumper(tmp1, i, 0, "UPpotORFs.pkl")
+    threader(tmp1, 1)
+    tmp1 = [snp for snp in tmp1 if snp.downcheck]
+    dumper(tmp1, i, 1, "DWNpotORFs.pkl")
+    threader(tmp1, 2)
+    tmp1 = [snp for snp in tmp1 if snp.RNAcount is not None]
+    dumper(tmp1, i, 2, "COUNTpotORFs.pkl")
+    threader(tmp1, 3)
+    tmp2.extend([snp for snp in tmp1])
 
 # Flatten potORFs
 potORFs = [snp for sublist in tmp2 for snp in sublist]
@@ -480,7 +479,7 @@ d, h = divmod(h, 24)
 
 # Write a small report for start time, end time, and elapsed time
 with open(outDir + "out.log", 'w') as f:
-    print(str(len(potORFs)) + " potential ORFs found")
+    print(str(orfcount) + " potential ORFs found")
     print("Program started:", file=f)
     print(startasc, file=f)
     print('', file=f)
