@@ -427,29 +427,28 @@ def file_writer(LIST):
 def threader(LIST, STEP):
     cmd_lst = ['obj.lookUp()', 'obj.lookDown()', 'obj.WordCount()', 'obj.metadata()']
     pool = ThreadPool()
-    exec('pool.map(lambda obj: %s , tmp1)' %(cmd_lst[step]))
+    exec('pool.map(lambda obj: %s , tmp1)' %(cmd_lst[STEP]))
     pool.close()
     pool.join()
 
 
-def dumper(LIST, lst_NUM, STEP, OUT):
+def dumper(LIST, lst_NUM, OUT):
     dump = LIST
-    dill.dump(dump, open('%s%s%s%s' %(outDir, str(lst_NUM), str(STEP), OUT), 'wb'))
+    dill.dump(dump, open('%s%s%s' %(outDir, str(lst_NUM), OUT), 'wb'))
 
 
 tmp2 = []
-for i in range(len(potORFs)):
-    step = 0
+for i in range(0,2):
     tmp1 = potORFs[i]
     threader(tmp1, 0)
     tmp1 = [snp for snp in tmp1 if snp.upcheck]
-    dumper(tmp1, i, 0, "UPpotORFs.pkl")
+    dumper(tmp1, i, "UPpotORFs.pkl")
     threader(tmp1, 1)
     tmp1 = [snp for snp in tmp1 if snp.downcheck]
-    dumper(tmp1, i, 1, "DWNpotORFs.pkl")
+    dumper(tmp1, i, "DWNpotORFs.pkl")
     threader(tmp1, 2)
     tmp1 = [snp for snp in tmp1 if snp.RNAcount is not None]
-    dumper(tmp1, i, 2, "COUNTpotORFs.pkl")
+    dumper(tmp1, i, "COUNTpotORFs.pkl")
     threader(tmp1, 3)
     tmp2.extend([snp for snp in tmp1])
 
@@ -494,3 +493,17 @@ try:
     dill.dump_session(outDir + 'last_session.pkl') # dill.load_session('dill.pkl') to load later
 except:
     pass
+
+tmp2 = []
+for i in range(7):
+    with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/%s1DWNpotORFs.pkl' %(str(i)), 'rb') as f:
+        tmp = dill.load(f)
+        tmp2.extend(tmp)
+
+00UPpotORFs.pkl
+10UPpotORFs.pkl
+20UPpotORFs.pkl
+30UPpotORFs.pkl
+40UPpotORFs.pkl
+50UPpotORFs.pkl
+60UPpotORFs.pkl
