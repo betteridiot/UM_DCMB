@@ -427,11 +427,11 @@ def file_writer(LIST):
             pass
 
 
+tmp2 = []
 cmd_lst = ['obj.lookUp()', 'obj.lookDown()', 'obj.WordCount()', 'obj.metadata()']
 for i in range(len(potORFs)):
     step = 0
     tmp1 = potORFs[i]
-    tmp2 = []
     for cmd in cmd_lst:
         step += 1
         pool = ThreadPool()
@@ -441,14 +441,15 @@ for i in range(len(potORFs)):
         if step is 1:
             tmp1 = [snp for snp in tmp1 if snp.upcheck]
             dump = tmp1
-            dill.dump(dump, open(outDir + str(i) + "UPpotORFs.pkl", 'wb'))
+            dill.dump(dump, open(outDir + str(i) + str(step) + "UPpotORFs.pkl", 'wb'))
         elif step is 2:
             tmp1 = [snp for snp in tmp1 if snp.downcheck]
             dump = tmp1
-            dill.dump(dump, open(outDir + str(i) + "DWNpotORFs.pkl", 'wb'))
+            dill.dump(dump, open(outDir + str(i) + str(step) + "DWNpotORFs.pkl", 'wb'))
         elif step is 3:
             tmp2.extend([snp for snp in tmp1 if snp.RNAcount is not None])
-            dill.dump(tmp2, open(outDir + str(i) + "COUNTpotORFs.pkl", 'wb'))
+            dump = tmp2
+            dill.dump(dump, open(outDir + str(i) +  str(step) + "COUNTpotORFs.pkl", 'wb'))
         else:
             pass
 
