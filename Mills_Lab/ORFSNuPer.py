@@ -116,8 +116,8 @@ Ribototalreads = dict(zip(samplenames, Ribobams_dict.values()))
 
 
 # Used to iterate potential ORF class instantiation
-def portORF(CHROM, START, END, ID, STRAND, SNP_POS, GENO):
-    portedORF = potORF(CHROM, START, END, ID, STRAND, SNP_POS, GENO)
+def portORF(CHROM, START, END, ID, STRAND, SNP_POS, GENO, ROW):
+    portedORF = potORF(CHROM, START, END, ID, STRAND, SNP_POS, GENO, ROW)
     return portedORF
 
 
@@ -194,13 +194,13 @@ def strand_checker(SEQ, ROW, LIST):
     else:
         if posCheckplus > 0:
             seqPos = int(ROW[1]) - posCheckplus
-            LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[4], ROW[9:]))
+            LIST.append(portORF(ROW[0], seqPos, seqPos + 2, ROW[2], True, ROW[4], ROW[9:], ROW[:8]))
             # orfcount += 1
 
         # Check to see if (-) strand ORF is found
         elif posCheckneg > 0:
             seqPos = int(ROW[1]) + posCheckneg
-            LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[4], ROW[9:]))
+            LIST.append(portORF(ROW[0], seqPos, seqPos - 2, ROW[2], False, ROW[4], ROW[9:], ROW[:8]))
             # orfcount += 1
         else:
             pass
@@ -224,12 +224,13 @@ class potORF(object):
     """
 
     # instantiate potential ORF object and get upstream and downstream sequences
-    def __init__(self, CHROM, START, END, ID, STRAND, SNP_POS, GENO):
+    def __init__(self, CHROM, START, END, ID, STRAND, SNP_POS, GENO, ROW):
         self.chrom = CHROM
         self.start = START
         self.end = END
         self.SNPid = ID
         self.strand = STRAND
+        self.row = ROW
         self.SNPpos = SNP_POS
         self.genotypes = GENO
         up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
@@ -499,8 +500,8 @@ except:
 #     with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/%s1DWNpotORFs.pkl' %(str(i)), 'rb') as f:
 #         tmp = dill.load(f)
 #         tmp2.extend(tmp)
-
-with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/tmp2_full.pkl', 'rb') as f:
+#
+with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/potORFs.pkl', 'rb') as f:
     tmp = dill.load(f)
 #
 # 00UPpotORFs.pkl
