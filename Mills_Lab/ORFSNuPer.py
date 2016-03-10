@@ -479,7 +479,7 @@ d, h = divmod(h, 24)
 
 # Write a small report for start time, end time, and elapsed time
 with open(outDir + "out.log", 'w') as f:
-    print(str(orfcount) + " potential ORFs found")
+    print(str(orfcount) + " potential ORFs found", file = f)
     print("Program started:", file=f)
     print(startasc, file=f)
     print('', file=f)
