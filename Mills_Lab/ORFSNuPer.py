@@ -355,9 +355,9 @@ def modulo_check(LIST):
 # function identifies SNPs, extracts sequence from reference +/-2 nt and looks for start codon within sequence
 def ORFSNuper():
     """Identifies SNPs, extracts their sequences from reference +/- 2 nt and looks for start codons."""
-    global potORFs
+    global pre_potORFs
     # global orfcount
-    potORFs = []
+    pre_potORFs = []
     global linecount
     linecount = 0
     global samples
@@ -383,18 +383,18 @@ def ORFSNuper():
                     seq_step = (seq[:1] + columns[4] + seq[3:]).upper()
 
                     # iff sequence creates start codon does it make a class instance
-                    strand_checker(seq_step, columns, potORFs)
+                    strand_checker(seq_step, columns, pre_potORFs)
                 else:
                     continue
                 # For debugging
                 # if orfcount >= 50:
                 #     print("orfcount met!")
                 #     break
-    potORFs = np.split(np.asarray(potORFs), modulo_check(potORFs))
 
 
 ORFSNuper()
-
+dill.dump(pre_potORFs, open(outDir + "pre_potORFs.pkl", 'wb'))
+potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
 
 def file_writer(LIST):
     """Outputs a file to outputDir based on the object that is passed to it
@@ -427,25 +427,34 @@ def file_writer(LIST):
             pass
 
 
-cmd_lst = ['obj.lookUp()', 'obj.lookDown', 'obj.WordCount()', 'obj.metadata()']
+cmd_lst = ['obj.lookUp()', 'obj.lookDown()', 'obj.WordCount()', 'obj.metadata()']
 for i in range(len(potORFs)):
-    step = 1
+    step = 0
+    tmp1 = potORFs[i]
+    tmp2 = []
     for cmd in cmd_lst:
+        step += 1
         pool = ThreadPool()
-        exec('pool.map(lambda obj: %s , potORFs[i])' % (cmd))
+        exec('pool.map(lambda obj: %s , tmp1' %(cmd))
         pool.close()
         pool.join()
-        del pool
         if step is 1:
-            potORFs[i] = [snp for snp in potORFs[i] if snp.upcheck]
+            tmp1 = [snp for snp in tmp1 if snp.upcheck]
+            dump = tmp1
+            dill.dump(dump, open(outDir + str(i) + "UPpotORFs.pkl", 'wb'))
         elif step is 2:
-            potORFs[i] = [snp for snp in potORFs[i] if snp.downcheck]
+            tmp1 = [snp for snp in tmp1 if snp.downcheck]
+            dump = tmp1
+            dill.dump(dump, open(outDir + str(i) + "DWNpotORFs.pkl", 'wb'))
         elif step is 3:
-            potORFs[i] = [snp for snp in potORFs[i] if snp.RNAcount is not None]
-        step += 1
+            tmp2.extend([snp for snp in tmp1 if snp.RNAcount is not None])
+            dill.dump(tmp2, open(outDir + str(i) + "COUNTpotORFs.pkl", 'wb'))
+        else:
+            pass
+
 
 # Flatten potORFs
-potORFs = [snp for sublist in potORFs for snp in sublist]
+potORFs = [snp for sublist in tmp2 for snp in sublist]
 file_writer(potORFs)
 # obj = cPickle.load(open('save.p', 'rb')) # this is used to open the list later.
 
@@ -481,7 +490,7 @@ with open(outDir + "out.log", 'w') as f:
     print("%s days, %s hours, %s minutes, %s seconds" % (str(d), str(h), str(m), str(round(s, 2))), file=f)
     print('', file=f)
 try:
-    dill.dump(potORFs, open(outDir + "potORFs.p", 'wb'))
-    dill.dump_session(outDir + 'last_session.p') # dill.load_session('dill.pkl') to load later
+    dill.dump(potORFs, open(outDir + "potORFs.pkl", 'wb'))
+    dill.dump_session(outDir + 'last_session.pkl') # dill.load_session('dill.pkl') to load later
 except:
     pass
