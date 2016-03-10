@@ -435,7 +435,7 @@ for i in range(len(potORFs)):
     for cmd in cmd_lst:
         step += 1
         pool = ThreadPool()
-        exec('pool.map(lambda obj: %s , tmp1' %(cmd))
+        exec('pool.map(lambda obj: %s , tmp1)' %(cmd))
         pool.close()
         pool.join()
         if step is 1:
