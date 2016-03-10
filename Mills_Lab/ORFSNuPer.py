@@ -401,7 +401,7 @@ def file_writer(LIST):
     """
     for snp in LIST:
         try:
-            filename = '%s%s_%s' % (outDir, str(snp.chrom), str(snp.SNPpos))
+            filename = '%s%s_%s' % (outDir+"SNPs/", str(snp.chrom), str(snp.SNPpos))
             if snp.RNAcount is None:
                 pass
             else:
