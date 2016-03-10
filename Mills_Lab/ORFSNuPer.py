@@ -451,7 +451,7 @@ for i in range(0,2):
     dumper(tmp1, i, "COUNTpotORFs.pkl")
     threader(tmp1, 3)
     tmp2.extend([snp for snp in tmp1])
-
+dumper(tmp2, "", "tmp2_full.pkl")
 # Flatten potORFs
 potORFs = [snp for sublist in tmp2 for snp in sublist]
 file_writer(potORFs)
