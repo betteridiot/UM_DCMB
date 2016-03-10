@@ -438,7 +438,7 @@ def dumper(LIST, lst_NUM, OUT):
 
 
 tmp2 = []
-for i in range(0,2):
+for i in range(len(potORFs)):
     tmp1 = potORFs[i]
     threader(tmp1, 0)
     tmp1 = [snp for snp in tmp1 if snp.upcheck]
@@ -450,7 +450,7 @@ for i in range(0,2):
     tmp1 = [snp for snp in tmp1 if snp.RNAcount is not None]
     dumper(tmp1, i, "COUNTpotORFs.pkl")
     threader(tmp1, 3)
-    tmp2.extend([snp for snp in tmp1])
+    tmp2.append([snp for snp in tmp1])
 dumper(tmp2, "", "tmp2_full.pkl")
 # Flatten potORFs
 potORFs = [snp for sublist in tmp2 for snp in sublist]
@@ -499,6 +499,9 @@ except:
 #     with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/%s1DWNpotORFs.pkl' %(str(i)), 'rb') as f:
 #         tmp = dill.load(f)
 #         tmp2.extend(tmp)
+
+with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/tmp2_full.pkl', 'rb') as f:
+    tmp = dill.load(f)
 #
 # 00UPpotORFs.pkl
 # 10UPpotORFs.pkl
