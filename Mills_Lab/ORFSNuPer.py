@@ -494,16 +494,16 @@ try:
 except:
     pass
 
-tmp2 = []
-for i in range(7):
-    with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/%s1DWNpotORFs.pkl' %(str(i)), 'rb') as f:
-        tmp = dill.load(f)
-        tmp2.extend(tmp)
-
-00UPpotORFs.pkl
-10UPpotORFs.pkl
-20UPpotORFs.pkl
-30UPpotORFs.pkl
-40UPpotORFs.pkl
-50UPpotORFs.pkl
-60UPpotORFs.pkl
+# tmp2 = []
+# for i in range(7):
+#     with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/%s1DWNpotORFs.pkl' %(str(i)), 'rb') as f:
+#         tmp = dill.load(f)
+#         tmp2.extend(tmp)
+#
+# 00UPpotORFs.pkl
+# 10UPpotORFs.pkl
+# 20UPpotORFs.pkl
+# 30UPpotORFs.pkl
+# 40UPpotORFs.pkl
+# 50UPpotORFs.pkl
+# 60UPpotORFs.pkl
