@@ -434,7 +434,7 @@ def threader(LIST, STEP):
 
 def dumper(LIST, lst_NUM, STEP, OUT):
     dump = LIST
-    dill.dump(dump, open('%s%s%s%s', 'wb') %(outDir, str(lst_NUM), str(STEP), OUT))
+    dill.dump(dump, open('%s%s%s%s' %(outDir, str(lst_NUM), str(STEP), OUT), 'wb'))
 
 
 tmp2 = []
