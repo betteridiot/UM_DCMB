@@ -428,10 +428,10 @@ def file_writer(LIST):
             pass
 
 
-def threader(STEP):
+def threader(lst, STEP):
     cmd_lst = ['obj.lookUp()', 'obj.lookDown()', 'obj.WordCount()', 'obj.metadata()']
     pool = ThreadPool()
-    exec('pool.map(lambda obj: %s , tmp1)' % (cmd_lst[STEP]))
+    exec('pool.map(lambda obj: %s , lst)' % (cmd_lst[STEP]))
     pool.close()
     pool.join()
 
@@ -440,19 +440,21 @@ def dumper(LIST, lst_NUM, OUT):
     dump = LIST
     dill.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
 
+
 def threadpool(lst):
     tmp1 = lst
-    threader(0)
+    threader(tmp1, 0)
     tmp1 = [snp for snp in tmp1 if snp.upcheck]
     dumper(tmp1, i, "UPpotORFs.pkl")
-    threader(1)
+    threader(tmp1, 1)
     tmp1 = [snp for snp in tmp1 if snp.downcheck]
     dumper(tmp1, i, "DWNpotORFs.pkl")
-    threader(2)
+    threader(tmp1, 2)
     tmp1 = [snp for snp in tmp1 if snp.RNAcount is not None]
     dumper(tmp1, i, "COUNTpotORFs.pkl")
-    threader(3)
+    threader(tmp1, 3)
     return tmp1
+
 
 pooler = Pool(cpu_count()-1)
 results = pooler.map(threadpool, potORFs)
