@@ -29,39 +29,39 @@ Description: ORFSNuPer uses identified SNPs from the 1000 Genomes Project that m
 startTime, startasc = time.time(), time.asctime()
 
 # ARGPARSE START
-# parser = argparse.ArgumentParser(description='Finds novel ORFs dues to SNPs')
-# # define where the reference sequence is
-# parser.add_argument('-r', action='store', dest='ref', help='Directory of reference chromosomes',
-#                     default='/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes')
-# # define what VCF file you will be working from
-# parser.add_argument('-v', action='store', dest='vcf', help='Path/to/<vcf.gz>',
-#                     default='/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz')
-# # how many nucleotides do you want to look upstream and downstream of potential ORFs
-# parser.add_argument('-t', action='store', dest='threshold', type=int, help='Up/downstream threshold', default=3000)
-# # Define your output filename and directory
-# parser.add_argument('-o', action='store', dest='output', help='Set output filename',
-#                     default='/home/mdsherm/Project/SNuPer_results/pythonTest/')
-# # Where are the ribosome profiling BAM files
-# parser.add_argument('--ribosome', action='store', dest='ribo', help='Directory of Ribosomal BAM files',
-#                     default='/home/mdsherm/Rotation/ribosomal/bwa_alignment')
-# # Where are the RNA-seq BAM files
-# parser.add_argument('--rna', action='store', dest='rna', help='Directory of RNA BAM files',
-#                     default='/home/mdsherm/Rotation/RNA_fq/tophat_hg19')
-# parser.add_argument('--alternative', action='store_true', help='Use alternative start codon GTG', default='False')
-# args = parser.parse_args()
-# vcf = args.vcf
-# riboDir = args.ribo
-# RNADir = args.rna
-# outDir = args.output
-# reference = args.ref
-# threshold = args.threshold
-reference = '/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes'
-vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/testing_smll.vcf.gz'
-RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
-riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
-outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
-threshold = 3000
-orfcount = 0  # use when debugging
+parser = argparse.ArgumentParser(description='Finds novel ORFs dues to SNPs')
+# define where the reference sequence is
+parser.add_argument('-r', action='store', dest='ref', help='Directory of reference chromosomes',
+                    default='/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes')
+# define what VCF file you will be working from
+parser.add_argument('-v', action='store', dest='vcf', help='Path/to/<vcf.gz>',
+                    default='/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz')
+# how many nucleotides do you want to look upstream and downstream of potential ORFs
+parser.add_argument('-t', action='store', dest='threshold', type=int, help='Up/downstream threshold', default=3000)
+# Define your output filename and directory
+parser.add_argument('-o', action='store', dest='output', help='Set output path',
+                    default='/home/mdsherm/Project/SNuPer_results/pythonTest/')
+# Where are the ribosome profiling BAM files
+parser.add_argument('--ribosome', action='store', dest='ribo', help='Directory of Ribosomal BAM files',
+                    default='/home/mdsherm/Rotation/ribosomal/bwa_alignment')
+# Where are the RNA-seq BAM files
+parser.add_argument('--rna', action='store', dest='rna', help='Directory of RNA BAM files',
+                    default='/home/mdsherm/Rotation/RNA_fq/tophat_hg19')
+parser.add_argument('--alternative', action='store_true', help='Use alternative start codon GTG', default='False')
+args = parser.parse_args()
+vcf = args.vcf
+riboDir = args.ribo
+RNADir = args.rna
+outDir = args.output
+reference = args.ref
+threshold = args.threshold
+# reference = '/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes'
+# vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/testing_smll.vcf.gz'
+# RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
+# riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
+# outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
+# threshold = 3000
+# orfcount = 0  # use when debugging
 # ARGPARSE END
 
 # Adding in ribosome sample name to SRA ID file
@@ -281,7 +281,7 @@ class potORF(object):
 
     # Looks at all specified BAM files and determine the number of reads found in a given region and corrects for length
     def WordCount(self):
-        global orfcount
+        # global orfcount
         """Looks at all specified BAM files and determine the number of reads
          found in a given region and corrects for length."""
         if self.upcheck and self.downcheck:
@@ -293,7 +293,7 @@ class potORF(object):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
-                    orfcount += 1
+                    # orfcount += 1
 
             else:  # is it a (-) strand?
                 begin, end = int(self.start - int(self.upPos[-1]) * 3), int(self.start)
@@ -303,7 +303,7 @@ class potORF(object):
                     pass
                 else:
                     self.ribocount = readCheck(False, int(self.chrom), begin, end, self.length)
-                    orfcount += 1
+                    # orfcount += 1
         return self
 
     def metadata(self):
@@ -517,7 +517,7 @@ d, h = divmod(h, 24)
 
 # Write a small report for start time, end time, and elapsed time
 with open(outDir + "out.log", 'w') as f:
-    print(str(orfcount) + " potential ORFs found", file=f)
+    print(str(len(potORFs)) + " potential ORFs found", file=f)
     print("Program started:", file=f)
     print(startasc, file=f)
     print('', file=f)
