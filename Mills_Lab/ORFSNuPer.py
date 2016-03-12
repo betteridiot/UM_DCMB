@@ -7,9 +7,10 @@ import glob
 import time
 import argparse
 import csv
-import dill
+import dill as pickle
 import numpy as np
-from multiprocessing import Pool, cpu_count
+from pathos.multiprocessing import ProcessingPool as Pool
+# from multiprocessing import Pool, cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
 
 """
@@ -391,7 +392,7 @@ def ORFSNuper():
 
 
 ORFSNuper()
-dill.dump(pre_potORFs, open(outDir + "DILL/" + "pre_potORFs.pkl", 'wb'))
+pickle.dump(pre_potORFs, open(outDir + "DILL/" + "pre_potORFs.pkl", 'wb'))
 potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
 # potORFs = [sublist.tolist() for sublist in potORFs]
 potORFs = [potORFs[i].tolist() for i in range(len(potORFs))]
@@ -438,7 +439,7 @@ def threader(lst, STEP):
 
 def dumper(LIST, lst_NUM, OUT):
     dump = LIST
-    dill.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
+    pickle.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
 
 from random import randint
 def threadpool(lst):
@@ -457,7 +458,7 @@ def threadpool(lst):
     return tmp1
 
 
-pooler = Pool(cpu_count()-1)
+pooler = Pool()
 results = pooler.map(threadpool, potORFs)
 tmp2 = [[results[i]] for i in range(len(results))]
 dumper(potORFs, "", "tmp2_full.pkl")
@@ -526,7 +527,7 @@ with open(outDir + "out.log", 'w') as f:
     print("%s days, %s hours, %s minutes, %s seconds" % (str(d), str(h), str(m), str(round(s, 2))), file=f)
     print('', file=f)
 
-dill.dump(potORFs, open(outDir + "DILL/" + "potORFs.pkl", 'wb'))
+pickle.dump(potORFs, open(outDir + "DILL/" + "potORFs.pkl", 'wb'))
 # dill.dump_session(outDir + 'last_session.pkl')  # dill.load_session('dill.pkl') to load later
 
 # tmp2 = []
