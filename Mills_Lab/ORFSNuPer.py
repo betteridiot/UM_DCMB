@@ -440,9 +440,10 @@ def dumper(LIST, lst_NUM, OUT):
     dump = LIST
     dill.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
 
-
+from random import randint
 def threadpool(lst):
     tmp1 = lst
+    i = randint(1,10)
     threader(tmp1, 0)
     tmp1 = [snp for snp in tmp1 if snp.upcheck]
     dumper(tmp1, i, "UPpotORFs.pkl")
