@@ -393,8 +393,8 @@ def ORFSNuper():
 ORFSNuper()
 dill.dump(pre_potORFs, open(outDir + "DILL/" + "pre_potORFs.pkl", 'wb'))
 potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
-potORFs = [sublist.tolist() for sublist in potORFs]
-# potORFs = [potORFs[i].tolist() for i in range(len(potORFs))]
+# potORFs = [sublist.tolist() for sublist in potORFs]
+potORFs = [potORFs[i].tolist() for i in range(len(potORFs))]
 
 
 def file_writer(LIST):
