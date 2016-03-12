@@ -9,6 +9,7 @@ import argparse
 import csv
 import dill as pickle
 import numpy as np
+from random import randint
 from pathos.multiprocessing import ProcessingPool as Pool
 # from multiprocessing import Pool, cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
@@ -441,7 +442,7 @@ def dumper(LIST, lst_NUM, OUT):
     dump = LIST
     pickle.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
 
-from random import randint
+
 def threadpool(lst):
     tmp1 = lst
     i = randint(1,10)
