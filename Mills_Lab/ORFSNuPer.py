@@ -9,6 +9,7 @@ import argparse
 import csv
 import dill
 import numpy as np
+from multiprocessing import Pool, cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
 
 """
@@ -229,6 +230,7 @@ class potORF(object):
         self.strand = STRAND
         self.SNPpos = SNP_POS
         self.genotypes = GENO
+        self.length = None
         up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.start) - threshold, int(self.start) - 1))
         up.readline()
@@ -238,10 +240,15 @@ class potORF(object):
         down.readline()
         self.down = ((down.read()).rstrip()).upper().replace('\n', '')
         self.upcheck, self.downcheck = False, False
+        self.upPos, self.downPos = [], []
+        self.RNAcount, self.ribocount = [], []
+        self.RNApercent_0, self.ribopercent_0 = 0, 0
+        self.RNApercent_1, self.ribopercent_1 = 0, 0
+        self.RNApercent_5, self.ribopercent_5 = 0, 0
+        self.RNApercent_10, self.ribopercent_10 = 0, 0
 
     # check to see if a stop codon is within upstream sequence (downstream if (-) strand)
     def lookUp(self):
-        self.upPos = []
         codonCount = 0
         if self.strand:
             stops = plusStops
@@ -257,7 +264,6 @@ class potORF(object):
 
     # check to see if a stop codon is within downsteam sequence (upstream if (-) strand)
     def lookDown(self):
-        self.downPos = []
         codonCount = 0
         if self.strand:
             stops = plusStops
@@ -387,7 +393,8 @@ def ORFSNuper():
 ORFSNuper()
 dill.dump(pre_potORFs, open(outDir + "DILL/" + "pre_potORFs.pkl", 'wb'))
 potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
-potORFs = [potORFs[i].tolist() for i in range(len(potORFs))]
+potORFs = [sublist.tolist() for sublist in potORFs]
+# potORFs = [potORFs[i].tolist() for i in range(len(potORFs))]
 
 
 def file_writer(LIST):
@@ -433,10 +440,8 @@ def dumper(LIST, lst_NUM, OUT):
     dump = LIST
     dill.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
 
-
-tmp2 = []
-for i in range(len(potORFs)):
-    tmp1 = potORFs[i]
+def threadpool(lst):
+    tmp1 = lst
     threader(0)
     tmp1 = [snp for snp in tmp1 if snp.upcheck]
     dumper(tmp1, i, "UPpotORFs.pkl")
@@ -447,10 +452,42 @@ for i in range(len(potORFs)):
     tmp1 = [snp for snp in tmp1 if snp.RNAcount is not None]
     dumper(tmp1, i, "COUNTpotORFs.pkl")
     threader(3)
-    tmp2.append([snp for snp in tmp1])
-dumper(tmp2, "", "tmp2_full.pkl")
-# Flatten potORFs
+    return tmp1
+
+pooler = Pool(cpu_count()-1)
+results = pooler.map(threadpool, potORFs)
+tmp2 = [[results[i]] for i in range(len(results))]
+dumper(potORFs, "", "tmp2_full.pkl")
 potORFs = [snp for sublist in tmp2 for snp in sublist]
+
+# def f(value):
+#     x = value*16
+#     return x
+#
+# a = [1,2,3,4,5]
+# pooler = Pool(cpu_count()-1)
+# results = pooler.map(f, a)
+
+# tmp2 = []
+# tmp2.append([])
+#
+# tmp2 = []
+# for i in range(len(potORFs)):
+#     tmp1 = potORFs[i]
+#     threader(0)
+#     tmp1 = [snp for snp in tmp1 if snp.upcheck]
+#     dumper(tmp1, i, "UPpotORFs.pkl")
+#     threader(1)
+#     tmp1 = [snp for snp in tmp1 if snp.downcheck]
+#     dumper(tmp1, i, "DWNpotORFs.pkl")
+#     threader(2)
+#     tmp1 = [snp for snp in tmp1 if snp.RNAcount is not None]
+#     dumper(tmp1, i, "COUNTpotORFs.pkl")
+#     threader(3)
+#     tmp2.append([snp for snp in tmp1])
+# dumper(tmp2, "", "tmp2_full.pkl")
+# # Flatten potORFs
+# potORFs = [snp for sublist in tmp2 for snp in sublist]
 file_writer(potORFs)
 # obj = cPickle.load(open('save.p', 'rb')) # this is used to open the list later.
 
