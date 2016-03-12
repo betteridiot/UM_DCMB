@@ -460,7 +460,7 @@ def threadpool(lst):
 
 pooler = Pool()
 results = pooler.map(threadpool, potORFs)
-tmp2 = [[results[i]] for i in range(len(results))]
+tmp2 = [[results[i]] for i in range(len(results)) if len(results[i]) > 0]
 dumper(potORFs, "", "tmp2_full.pkl")
 potORFs = [snp for sublist in tmp2 for snp in sublist]
 
