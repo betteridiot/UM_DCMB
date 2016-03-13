@@ -64,13 +64,7 @@ threshold = args.threshold
 # orfcount = 0  # use when debugging
 # ARGPARSE END
 
-# Adding in ribosome sample name to SRA ID file
-ribosamples = []
-with open('/home/mdsherm/Project/ribosamplescross') as ribo:
-    reader = csv.reader(ribo, delimiter='\t')
-    ribosamples.extend([row for row in reader])
-
-# # CODONS START
+# CODONS START
 negStops = ['TTA', 'CTA', 'TCA']
 plusStops = ['ATT', 'ATC', 'ACT']
 # if args.alternative is True:
@@ -83,36 +77,13 @@ plusStart = ("TAC",)
 negStart = ("CAT",)
 # CODONS END
 
-# makes lists of all RNA-seq and ribosome profiling BAM files
-RNAbams, Ribobams = [], []
-RNAbams_total, Ribobams_total = [], []
-# dir, _, _ implies dir, dirs, files...however, I only want the top object
-os.chdir(RNADir)
-for dir, _, _ in os.walk(os.getcwd()):
-    RNAbams.extend(glob.glob(os.path.join(dir, "*hits.bam")))
-os.chdir(riboDir)
-for dir, _, _ in os.walk(os.getcwd()):
-    Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
-with open("/home/mdsherm/Project/RNAsamples", 'r') as rnasamples:
-    samplenames = rnasamples.read().splitlines()
-RNAsamp_crossref = [(name, [entry for entry in RNAbams if name in entry]) for name in samplenames]
-Ribosamp_crossref = [(name[1], [entry for entry in Ribobams if name[0] in entry]) for name in ribosamples]
 
-
-# Make a dict of Samples and FPKM
-def read_indexer(fileDIR, LIST):
-    for item in fileDIR:
-        fullcounter = os.popen("samtools idxstats " + item + " |awk '{sum+=$3} END {print sum}'")
-        fullcount = float(fullcounter.readline().rstrip())
-        LIST.extend([[item, fullcount]])
-    return {key: value for (key, value) in LIST}
-
-
-# Matches sample names to bam files and pulls out total reads of
-RNAbams_dict = read_indexer(RNAbams, RNAbams_total)
-RNAtotalreads = dict(zip(samplenames, [sum([RNAbams_dict.get(j) for j in i[1]])for i in RNAsamp_crossref]))
-Ribobams_dict = read_indexer(Ribobams, Ribobams_total)
-Ribototalreads = dict(zip(samplenames, Ribobams_dict.values()))
+list_files = ["RNAsamp_crossref", "Ribosamp_crossref", "RNAbams_dict", "Ribobams_dict"]
+bamDir = "/home/mdsherm/Project/UM_DCMB/Mills_Lab/pkl/"
+for name in list_files:
+    with open('%s%s.pkl' % (bamDir, name), 'rb') as f:
+        n = name
+        globals()[n] = pickle.load(f)
 
 
 # Used to iterate potential ORF class instantiation
@@ -356,7 +327,7 @@ def modulo_check(LIST):
 def ORFSNuper():
     """Identifies SNPs, extracts their sequences from reference +/- 2 nt and looks for start codons."""
     global pre_potORFs
-    global orfcount
+    # global orfcount
     pre_potORFs = []
     global linecount
     linecount = 0
@@ -396,7 +367,6 @@ ORFSNuper()
 pickle.dump(pre_potORFs, open(outDir + "DILL/" + "pre_potORFs.pkl", 'wb'))
 potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
 potORFs = [sublist.tolist() for sublist in potORFs]
-# potORFs = [potORFs[i].tolist() for i in range(len(potORFs))]
 
 
 def file_writer(LIST):
@@ -445,7 +415,7 @@ def dumper(LIST, lst_NUM, OUT):
 
 def threadpool(lst):
     tmp1 = lst
-    i = randint(1,10)
+    i = randint(1, 10)
     threader(tmp1, 0)
     tmp1 = [snp for snp in tmp1 if snp.upcheck]
     dumper(tmp1, i, "UPpotORFs.pkl")
@@ -461,40 +431,10 @@ def threadpool(lst):
 
 pooler = Pool()
 results = pooler.map(threadpool, potORFs)
-tmp2 = [sublist for sublist in results if len(sublist) > 0]
-dumper(potORFs, "", "tmp2_full.pkl")
-potORFs = [snp for sublist in tmp2 for snp in sublist]
-
-# def f(value):
-#     x = value*16
-#     return x
-#
-# a = [1,2,3,4,5]
-# pooler = Pool(cpu_count()-1)
-# results = pooler.map(f, a)
-
-# tmp2 = []
-# tmp2.append([])
-#
-# tmp2 = []
-# for i in range(len(potORFs)):
-#     tmp1 = potORFs[i]
-#     threader(0)
-#     tmp1 = [snp for snp in tmp1 if snp.upcheck]
-#     dumper(tmp1, i, "UPpotORFs.pkl")
-#     threader(1)
-#     tmp1 = [snp for snp in tmp1 if snp.downcheck]
-#     dumper(tmp1, i, "DWNpotORFs.pkl")
-#     threader(2)
-#     tmp1 = [snp for snp in tmp1 if snp.RNAcount is not None]
-#     dumper(tmp1, i, "COUNTpotORFs.pkl")
-#     threader(3)
-#     tmp2.append([snp for snp in tmp1])
-# dumper(tmp2, "", "tmp2_full.pkl")
-# # Flatten potORFs
-# potORFs = [snp for sublist in tmp2 for snp in sublist]
+potORFs = [snp for sublist in results if len(sublist) > 0 for snp in sublist]
+dumper(potORFs, "", "potORFs_full.pkl")
 file_writer(potORFs)
-# obj = cPickle.load(open('save.p', 'rb')) # this is used to open the list later.
+
 
 # Writes a master file containing metadata for each SNP
 with open(outDir+"metadata", 'w') as meta:
@@ -529,13 +469,3 @@ with open(outDir + "out.log", 'w') as f:
     print('', file=f)
 
 pickle.dump(potORFs, open(outDir + "DILL/" + "potORFs.pkl", 'wb'))
-# dill.dump_session(outDir + 'last_session.pkl')  # dill.load_session('dill.pkl') to load later
-
-# tmp2 = []
-# for i in range(7):
-#     with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/%s1DWNpotORFs.pkl' %(str(i)), 'rb') as f:
-#         tmp = dill.load(f)
-#         tmp2.extend(tmp)
-#
-# with open('/home/mdsherm/Project/SNuPer_results/pythonTest/100kretest/potORFs.pkl', 'rb') as f:
-#     tmp = dill.load(f)
