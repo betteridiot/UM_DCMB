@@ -361,10 +361,18 @@ def ORFSNuper():
                 # if orfcount >= 50:
                 #     print("orfcount met!")
                 #     break
-
+    # return pre_potORFs
 
 ORFSNuper()
-pickle.dump(pre_potORFs, open(outDir + "DILL/" + "pre_potORFs.pkl", 'wb'))
+
+
+def dumper(LIST, lst_NUM, OUT):
+    dump = LIST
+    pickle.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
+
+
+dumper(pre_potORFs, "", "pre_potORFs.pkl")
+# pickle.dump(pre_potORFs, open(outDir + "DILL/" + "pre_potORFs.pkl", 'wb'))
 potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
 potORFs = [sublist.tolist() for sublist in potORFs]
 
@@ -408,9 +416,7 @@ def threader(lst, STEP):
     pool.join()
 
 
-def dumper(LIST, lst_NUM, OUT):
-    dump = LIST
-    pickle.dump(dump, open('%s%s%s' % (outDir + "DILL/", str(lst_NUM), OUT), 'wb'))
+
 
 
 def threadpool(lst):
