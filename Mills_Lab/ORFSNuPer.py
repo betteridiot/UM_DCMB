@@ -331,6 +331,7 @@ def ORFSNuper():
     pre_potORFs = []
     global linecount
     linecount = 0
+    firstLine = True
     global samples
     with gzip.open(vcf, 'rt')as VCF:
         sampleCheck = False
@@ -347,11 +348,16 @@ def ORFSNuper():
                 pickle.dump(samples, open(name, 'wb'))
                 popper(RNAsamp_crossref)
                 popper(Ribosamp_crossref)
+                firstLine = False
             else:
                 if not sampleCheck:
                     name = outDir.split('part', 1)[0] + 'samples.pkl'
                     with open(name, 'rb') as f:
                         samples = pickle.load(f)
+                if firstLine:
+                    popper(RNAsamp_crossref)
+                    popper(Ribosamp_crossref)
+                    firstLine = False
                 columns = line.split()
 
                 # Check to see if it is a SNP
