@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
 from __future__ import print_function
-import os
+from os import popen
 import gzip
-import glob
+# import glob
 import time
 import argparse
 import csv
@@ -115,8 +115,8 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
     for filelist in bamlist:
         counter, fullcount = [], []
         for filename in filelist:
-            readcount = os.popen('samtools view -q 10 ' + filename + ' chr%d:%d-%d | wc -l'
-                                 % (int(CHROM), int(START), int(STOP)))
+            readcount = popen('samtools view -q 10 ' + filename + ' chr%d:%d-%d | wc -l'
+                              % (int(CHROM), int(START), int(STOP)))
             counter.append(float(readcount.readline().rstrip()))
             fullcount.append(bamlist_dict[filename])
         try:
@@ -140,7 +140,7 @@ def SNP_search(CHROM, START, STOP):
         STOP (int): 2 nt downstream of SNP
     """
 
-    seq = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (reference, CHROM, CHROM, START, STOP))
+    seq = popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (reference, CHROM, CHROM, START, STOP))
     seq.readline()
     seq = seq.read().rstrip()
     return seq
@@ -204,11 +204,11 @@ class potORF(object):
         self.SNPpos = SNP_POS
         self.genotypes = GENO
         self.length = None
-        up = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
+        up = popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.start) - threshold, int(self.start) - 1))
         up.readline()
         self.up = ((up.read()).rstrip()).upper().replace('\n', '')
-        down = os.popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
+        down = popen('samtools faidx %s/chr%s.fa chr%s:%d-%d' % (
             reference, self.chrom, self.chrom, int(self.end) + 1, int(self.end) + threshold))
         down.readline()
         self.down = ((down.read()).rstrip()).upper().replace('\n', '')
@@ -348,7 +348,7 @@ def ORFSNuper():
                 popper(Ribosamp_crossref)
             else:
                 if not sampleCheck:
-                    with open(outDir.split('part', "") + 'samples.pkl', 'wb') as f:
+                    with open(outDir.split('part', "") + 'samples.pkl', 'rb') as f:
                         samples = pickle.load(f)
                 columns = line.split()
 
