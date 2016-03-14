@@ -10,7 +10,7 @@ import dill as pickle
 import numpy as np
 from random import randint
 from os import popen
-from io import open as open
+from __builtin__ import open
 from pathos.multiprocessing import ProcessingPool as Pool
 # from multiprocessing import Pool, cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
@@ -344,12 +344,14 @@ def ORFSNuper():
                 sampleCheck = True
                 header = line.split()
                 samples = header[9:]
-                pickle.dump(samples, open(outDir.split('part', "") + 'samples.pkl', 'wb'))
+                name = outDir.split('part', "") + "samples.pkl"
+                pickle.dump(samples, open(name, 'wb'))
                 popper(RNAsamp_crossref)
                 popper(Ribosamp_crossref)
             else:
                 if not sampleCheck:
-                    with open(outDir.split('part', "") + 'samples.pkl', 'rb') as f:
+                    name = outDir.split('part', "") + 'samples.pkl'
+                    with open(name, 'rb') as f:
                         samples = pickle.load(f)
                 columns = line.split()
 
