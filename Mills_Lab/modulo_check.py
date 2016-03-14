@@ -24,8 +24,8 @@ def main():
     num = int(sys.argv[1])
     div = modulo_check(num)
     out = num/div
-    print("Greatest Divisor: %d" %(div))
-    print("Lines per file: %d" %(out))
+    print("Greatest Divisor: %d" % div)
+    print("Lines per file: %d" % out)
 
 
 if __name__ == '__main__':
