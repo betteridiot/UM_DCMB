@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 from os import popen
+from io import open
 import gzip
 # import glob
 import time
