@@ -12,7 +12,7 @@ def modulo_check(NUM):
         greatest divisor between 1 and 50
     """
     mod_check = []
-    for i in range(1, 50):
+    for i in range(1, 53):
         if NUM % i is 0:
             mod_check.append(i)
         else:
