@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 
 from __future__ import print_function
-from os import popen
-from io import open
 import gzip
 # import glob
 import time
@@ -11,6 +9,8 @@ import csv
 import dill as pickle
 import numpy as np
 from random import randint
+from os import popen
+from io import open as open
 from pathos.multiprocessing import ProcessingPool as Pool
 # from multiprocessing import Pool, cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
