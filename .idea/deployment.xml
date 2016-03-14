@@ -2,13 +2,6 @@
 <project version="4">
   <component name="PublishConfigData" serverName="Axiom" stopOnFirstError="true" promptOnLocalOverwrite="false">
     <serverData>
-      <paths name="Axiom">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/Project/UM_DCMB" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="bcs2">
         <serverdata>
           <mappings>
