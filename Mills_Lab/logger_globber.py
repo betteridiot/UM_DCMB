@@ -32,7 +32,7 @@ def main():
             reader = f.readline()
             reader = (int(string) for string in reader.split() if string.isdigit())
         num_orfs.extend(reader)
-    return sum(num_orfs)
+    print(str(sum(num_orfs)))
 
 
 if __name__ is "__main__":
