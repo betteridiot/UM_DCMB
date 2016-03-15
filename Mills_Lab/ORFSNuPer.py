@@ -455,7 +455,7 @@ file_writer(potORFs)
 
 # Writes a master file containing metadata for each SNP
 with open(outDir+"metadata", 'w') as meta:
-    writer = csv.writer(meta, delimiter='\t')
+    writer = csv.writer(meta, delimiter='\t', lineterminator='\n')
     header = ["#CHROM_SNPPOSITION", "%RNA-FPKM>0", "%ribo-FPKM>0", "%RNA-FPKM>1",
               "%ribo-FPKM>1", "%RNA-FPKM>5", "%ribo-FPKM>5", "%RNA-FPKM>10", "%ribo-FPKM>10"]
     writer.writerow(header)

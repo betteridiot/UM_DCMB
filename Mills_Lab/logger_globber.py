@@ -15,10 +15,10 @@ group.add_argument('-m', action='store', dest='meta', help='Path/to/metadata/par
 args = parser.parse_args()
 if not args.logs:
     parent = args.meta
-    string = "metadata"
+    search_term = "metadata"
 else:
     parent = args.logs
-    string = "*.logs"
+    search_term = "out.log"
 
 
 def globber():
@@ -30,9 +30,8 @@ def globber():
     cwd = parent
     os.chdir(cwd)
     globs = []
-    term = string
-    for dir, _, _ in os.walk(os.getcwd()):
-        globs.extend(glob.glob(os.path.join(dir, term)))
+    for directory, _, _ in os.walk(os.getcwd()):
+        globs.extend(glob.glob(os.path.join(directory, search_term)))
     return globs
 
 
@@ -49,7 +48,7 @@ def logger(lst):
     for entry in lst:
         with open(entry, 'rb') as f:
             reader = f.readline()
-            reader = (int(string) for string in reader.split() if string.isdigit())
+            reader = (int(string) for string in reader.split() if string.isdigit() and string > 0)
         num_orfs.extend(reader)
     return str(sum(num_orfs))
 
@@ -62,23 +61,38 @@ def meta_join(lst):
         lst (list): list of metadata files for a given chromosome
     """
     first = True
+    line_count = 0
     with TemporaryFile('a+b') as outfile:
         for entry in lst:
-            with(entry, "rb") as infile:
+            with open(entry, "r+b") as infile:
                 if first:
+                    line_count + 1
                     header = infile.readline().strip().split()
                     for line in infile:
+                        line_count += 1
                         outfile.write(line)
                     first = False
                 else:
                     next(infile)
                     for line in infile:
+                        line_count += 1
                         outfile.write(line)
         outfile.seek(0)
-        table = [line.strip().split() for line in outfile]
-        table.sort(key=itemgetter(0))
+        table = [line.rstrip().split() for line in outfile]
+        dup_check = set()
+        unique = {x[0]: x[1] for x in table if x[0] not in dup_check and not dup_check.add(x[0])}
+        dupes = [x for x in table if unique.has_key(x[0]) and unique.get(x[0]) is not x[1]]
+        print(str(len(table) - len(dup_check)) +
+              " duplicate SNP positions (possibly different alleles).")
+        with open(parent + "duplicate_SNPs", 'wb') as dup:
+            duper = csv.writer(dup, delimiter='\t', lineterminator='\n')
+            note = "# Duplicate SNP postion entries (possible different alleles)."
+            duper.writerow([note])
+            duper.writerow(header)
+            duper.writerows(dupes)
+        table.sort(key=itemgetter(0, 1))
         with open(parent + "meta_full", 'wb') as final:
-            writer = csv.writer(final, delimiter='\t')
+            writer = csv.writer(final, delimiter='\t', lineterminator='\n')
             writer.writerow(header)
             writer.writerows(table)
 
@@ -100,3 +114,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
