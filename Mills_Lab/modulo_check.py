@@ -37,7 +37,7 @@ def main():
     print(time() + ": Start splitting")
     os.popen("gzip -cd %s | split -l 100000  - %s" % (infile, output))
     print(time() + ": Done splitting")
-    os.popen("rm -f *[0-9].gz.vcf")
+    os.popen("rm -f %s" % infile)
     os.popen("find . -type f -exec mv '{}' '{}'.vcf \;")
     print(time() + ": Start compressing")
     os.popen('for f in *.vcf; do   bgzip "$f"; done')
