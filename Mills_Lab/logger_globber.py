@@ -35,6 +35,6 @@ def main():
     print(str(sum(num_orfs)))
 
 
-if __name__ is "__main__":
+if __name__ == '__main__':
     main()
 #
