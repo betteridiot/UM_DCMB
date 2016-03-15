@@ -14,15 +14,11 @@ group.add_argument('-l', action='store', dest='logs', help='Path/to/logfile/pare
 group.add_argument('-m', action='store', dest='meta', help='Path/to/metadata/parent', default=False)
 args = parser.parse_args()
 if not args.logs:
-    pass
+    parent = args.meta
+    string = "metadata"
 else:
     parent = args.logs
     string = "*.logs"
-if not args.meta:
-    pass
-else:
-    parent = args.meta
-    string = "metadata"
 
 
 def globber():
@@ -66,7 +62,7 @@ def meta_join(lst):
         lst (list): list of metadata files for a given chromosome
     """
     first = True
-    temp = TemporaryFile("a+b")
+    temp = TemporaryFile()
     with open(temp, "ab+") as outfile:
         for entry in lst:
             with(entry, "rb") as infile:
