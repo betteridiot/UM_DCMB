@@ -93,9 +93,9 @@ def main():
     """
     files = globber()
     if not args.logs:
-        print(logger(files))
-    else:
         meta_join(files)
+    else:
+        print(logger(files))
 
 
 if __name__ == '__main__':
