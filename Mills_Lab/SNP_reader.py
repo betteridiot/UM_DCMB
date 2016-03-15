@@ -1,20 +1,22 @@
-#Psuedocode
-#glob all of the SNP files
-#iteratively open and read in as tab delimited
-#skip lines with pound signs
-#find the ones that have both rna-seq and ribosome profiling data
-
+#!/usr/bin/env python
 from __future__ import print_function, division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import glob
 import math
-import random
-import string
+import os
 import csv
 
 path_name = '/home/mdsherm/Project/SNuPer_results/pythonTest/100ktest/'
 snp_files = glob.glob(path_name+"*.snp")
+
+# Used for globbing all SNPs in subparts
+# dirname = '/home/mdsherm/Project/SNuPer_results/chr22'
+# snps = []
+# for dirs, _, files in os.walk(dirname):
+#     if "SNPs" in dirs:
+#         snp_files.extend(glob.glob(os.path.join(dirs, "*")))
+
 
 
 class CommentedFile:
@@ -140,7 +142,7 @@ ax.scatter(x,y, color='orange', s=50, linewidths=0.1, edgecolors='black')
 ax.set_title("Chr22 100k Test data")
 ax.set_xlabel('%RNA-seq > 0.0')
 ax.set_ylabel('%Ribosome Profiling > 0.0')
-af =  AnnoteFinder(x,y, annotes, ax=ax)
+af = AnnoteFinder(x,y, annotes, ax=ax)
 fig.canvas.mpl_connect('button_press_event', af)
 plt.show()
 

@@ -9,7 +9,8 @@ import argparse
 import csv
 import dill as pickle
 import numpy as np
-from random import randint
+import string
+from random import randint, choice
 from pathos.multiprocessing import ProcessingPool as Pool
 # from multiprocessing import Pool, cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
@@ -391,6 +392,10 @@ potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
 potORFs = [sublist.tolist() for sublist in potORFs]
 
 
+def rand_gen(size=2, chars=string.ascii_uppercase):
+    return ''.join(choice(chars) for x in range(size))
+
+
 def file_writer(LIST):
     """Outputs a file to outputDir based on the object that is passed to it
 
@@ -399,7 +404,8 @@ def file_writer(LIST):
     """
     for snp in LIST:
         try:
-            filename = '%s%s_%s' % (outDir + "SNPs/", str(snp.chrom), str(snp.SNPpos))
+            filename = '%s%s_%s:%s.snp' % (outDir + "SNPs/", str(snp.chrom),
+                                           str(snp.SNPpos), rand_gen())
             if snp.RNAcount is None:
                 pass
             else:
