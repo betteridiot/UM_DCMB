@@ -28,16 +28,14 @@ def main():
     infile = sys.argv[1]
     output = pat1.search(infile).group()
     path = pat2.search(infile).group()
-    line_count = os.popen("gzip -cd %s | wc -l" % infile)
-    num = int((line_count.next()).rstrip())
-    div = modulo_check(num)
-    out = num/div
-    os.popen("gzip -cd %s | split -l %d  - %s" % (infile, out, output))
-    print("Greatest Divisor: %d" % div)
-    print("Lines per file: %d" % out)
+    # line_count = os.popen("gzip -cd %s | wc -l" % infile)
+    # num = int((line_count.next()).rstrip())
+    # div = modulo_check(num)
+    # out = num/div
+    os.popen("gzip -cd %s | split -l 100000  - %s" % (infile, output))
     os.chdir(path)
-    os.popen("find . -type f -exec mv '{}' '{}'.vcf \;")
     os.popen("rm -f *.gz.vcf")
+    os.popen("find . -type f -exec mv '{}' '{}'.vcf \;")
     os.popen('for f in *.vcf; do   bgzip "$f"; done')
 
 if __name__ == '__main__':
