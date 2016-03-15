@@ -3,6 +3,7 @@ from __future__ import print_function
 import sys
 import os
 import re
+from time import asctime as time
 
 
 def modulo_check(NUM):
@@ -32,11 +33,16 @@ def main():
     # num = int((line_count.next()).rstrip())
     # div = modulo_check(num)
     # out = num/div
-    os.popen("gzip -cd %s | split -l 100000  - %s" % (infile, output))
     os.chdir(path)
-    os.popen("rm -f *.gz.vcf")
-    os.popen("find . -type f -exec mv '{}' '{}'.vcf \;")
-    os.popen('for f in *.vcf; do   bgzip "$f"; done')
+    print(path)
+    # print(time() + ": Start splitting")
+    # os.popen("gzip -cd %s | split -l 100000  - %s" % (infile, output))
+    # print(time() + ": Done splitting")
+    # os.popen("rm -f *[0-9].gz.vcf")
+    # os.popen("find . -type f -exec mv '{}' '{}'.vcf \;")
+    # print(time() + ": Start compressing")
+    # os.popen('for f in *.vcf; do   bgzip "$f"; done')
+    # print(time() + ": Done compressing")
 
 if __name__ == '__main__':
     main()
