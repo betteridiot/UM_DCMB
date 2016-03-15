@@ -62,8 +62,7 @@ def meta_join(lst):
         lst (list): list of metadata files for a given chromosome
     """
     first = True
-    temp = TemporaryFile()
-    with open(temp, "ab+") as outfile:
+    with TemporaryFile('a+b') as outfile:
         for entry in lst:
             with(entry, "rb") as infile:
                 if first:
