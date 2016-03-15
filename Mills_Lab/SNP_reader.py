@@ -10,7 +10,7 @@ import csv
 path_name = '/home/mdsherm/Project/SNuPer_results/pythonTest/100ktest/'
 snp_files = glob.glob(path_name+"*.snp")
 
-# Used for globbing all SNPs in subparts
+# TODO this is for globbing all SNPs through all subparts
 # dirname = '/home/mdsherm/Project/SNuPer_results/chr22'
 # snps = []
 # for dirs, _, files in os.walk(dirname):
