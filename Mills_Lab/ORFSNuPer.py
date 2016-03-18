@@ -117,7 +117,7 @@ def readCheck(RNAorRIBO, CHROM, START, STOP, LENGTH):
         counter, fullcount = [], []
         for filename in filelist:
             readcount = os.popen('samtools view -q 10 ' + filename + ' chr%d:%d-%d | wc -l'
-                              % (int(CHROM), int(START), int(STOP)))
+                                 % (int(CHROM), int(START), int(STOP)))
             counter.append(float(readcount.readline().rstrip()))
             fullcount.append(bamlist_dict[filename])
         try:
