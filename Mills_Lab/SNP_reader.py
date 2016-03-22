@@ -80,7 +80,6 @@ class AnnoteFinder(object):
     def __call__(self, event):
 
         if event.inaxes:
-
             clickX = event.xdata
             clickY = event.ydata
             if (self.ax is None) or (self.ax is event.inaxes):
@@ -102,8 +101,8 @@ class AnnoteFinder(object):
     def sub_boxplot(self, string):
         idx = qLook.get(string)
         if idx is not None:
-            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '1|0" or "0|1' in row[1]])
-            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][1] if '1|0" or "0|1' in row[1]])
+            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '1|0' or '0|1' in row[1]])
+            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][1] if '1|0' or '0|1' in row[1]])
             homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '1|1' in row[1]])
             homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][1] if '1|1' in row[1]])
             refrna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '0|0' in row[1]])
@@ -117,19 +116,19 @@ class AnnoteFinder(object):
             figrna = plt.figure()
             axrna = figrna.add_subplot(111)
             axrna.boxplot(rna, labels=ticks)
-            axrna.set_title(title + "RNA-seq")
+            axrna.set_title(title + ": RNA-seq")
             axrna.set_ylabel(ylab)
             axrna.set_xlabel(xlab)
             figrna.show()
             figribo = plt.figure()
             axribo = figribo.add_subplot(111)
             axribo.boxplot(ribo, labels=ticks)
-            axribo.set_title(title + "Ribosome Profiling")
+            axribo.set_title(title + ": Ribosome Profiling")
             axribo.set_ylabel(ylab)
             axribo.set_xlabel(xlab)
             figribo.show()
 
-    def drawAnnote(self, ax, x, y, annote, event):
+    def drawAnnote(self, ax, x, y, annote):
         """
         Draw the annotation on the plot
         """
@@ -141,11 +140,10 @@ class AnnoteFinder(object):
                 m.set_visible(not m.get_visible())
             self.ax.figure.canvas.draw_idle()
         else:
-            t = ax.text(x, y, " - %s" % annote,)
+            t = ax.text(x, y, " - %s" % annote)
             m = ax.scatter([x], [y], marker='d', c='r', zorder=100)
             self.drawnAnnotations[(x, y)] = (t, m)
-            if event.dblclick:
-                self.sub_boxplot(annote)
+            self.sub_boxplot(annote)
             self.ax.figure.canvas.draw_idle()
 
     def drawSpecificAnnote(self, annote):
@@ -156,7 +154,7 @@ class AnnoteFinder(object):
 
 def meta_list(LIST):
     try:
-        output = (sum(1 for rna in LIST if rna[0] > 0.0)/len(LIST), sum(1 for ribo in LIST if ribo[1] > 5)/len(LIST))
+        output = (sum(1 for rna in LIST if rna[0] > 0.0)/len(LIST), sum(1 for ribo in LIST if ribo[1] > 0)/len(LIST))
         return output
     except ZeroDivisionError:
         return 0
@@ -168,7 +166,7 @@ def main():
     path_name, snp_files = file_globber()
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
         CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
-    qLook = {entry[0]:i for (i, entry) in enumerate(sampleGroup)}
+    qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
     SNP_IDs = [snp[0] for snp in sampleGroup]
     percents = []
     for snp in sampleGroup:
@@ -179,16 +177,33 @@ def main():
     # Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
     axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
     annotes = [snp[0] for snp in SNP_list]
+    # x, y = [], []
+    # for i in axis:
+    #     if i[1] <= i[0] < 0.8:
+    #         x.extend(i[0])
+    #         y.extend(i[1])
+    #     elif i[0] >= 0.8:
+    #         x.extend(i[0])
+    #         y.extend(i[1])
+    #     else:
+    #         pass
     x = [x[0] for x in axis]
     y = [y[1] for y in axis]
     t = [(vector[0]*vector[1]) for vector in axis]
 
     # Plots the points above, and can be used to tie in individual SNP IDs
     fig, ax = plt.subplots()
-    ax.scatter(x, y, color=t, cmap=cm.YlOrRd, s=10, linewidths=0.1, edgecolors='black', alpha=0.5)
+    ax.scatter(x, y, color=t, cmap=cm.YlOrRd, s=10, linewidths=0.1, edgecolors='black', alpha=0.7)
+    # lims = [np.min([0, 0]),  # min of both axes
+    #         np.max([1, 1.001]),  # max of both axes
+    #         ]
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
+    ax.set_xlim(0,1)
+    ax.set_ylim(0,1)
+    ax.set_aspect('equal')
+    ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
     af = AnnoteFinder(x, y, annotes, ax=ax)
     fig.canvas.mpl_connect('button_press_event', af)
     plt.show()
