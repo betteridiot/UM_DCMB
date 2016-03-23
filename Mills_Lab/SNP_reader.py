@@ -99,6 +99,9 @@ class AnnoteFinder(object):
                         l.drawSpecificAnnote(annote)
 
     def sub_boxplot(self, string):
+        global qLook
+        global sampleGroup
+        global SNPs
         idx = qLook.get(string)
         if idx is not None:
             hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '1|0' or '0|1' in row[1]])
@@ -132,8 +135,6 @@ class AnnoteFinder(object):
         """
         Draw the annotation on the plot
         """
-        global qLook
-        global sampleGroup
         if (x, y) in self.drawnAnnotations:
             markers = self.drawnAnnotations[(x, y)]
             for m in markers:
@@ -163,40 +164,44 @@ def meta_list(LIST):
 def main():
     global qLook
     global sampleGroup
+    global SNPs
     path_name, snp_files = file_globber()
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
         CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
-    qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
-    SNP_IDs = [snp[0] for snp in sampleGroup]
-    percents = []
+    genos = []
     for snp in sampleGroup:
-        step = [(float(samples[2]), float(samples[3])) for samples in snp[1]]
-        percents.append((sum(1 for rna in step if rna[0] > 0.0)/len(step),
-                         sum(1 for ribo in step if ribo[1] > 0.0)/len(step)))
+        ID = snp[0]
+        ref = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1] if "0|0" in sample[1]])
+        het = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1] if ("1|0" or "0|1") in sample[1]])
+        alt = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1] if "1|1" in sample[1]])
+        raw = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1]])
+        try:
+            if np.mean([lst[0] for lst in ref]) < np.mean([lst[0] for lst in het]) < np.mean([lst[0] for lst in alt]):
+                genos.append([ID, ref, het, alt, raw])
+            else:
+                pass
+        except RuntimeWarning:
+            pass
+
+    SNPs = genos[:]
+    qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
+    SNP_IDs = [snp[0] for snp in SNPs]
+    percents = []
+    for snp in range(len(SNPs)):
+        step = [(sample[0], sample[1]) for sample in SNPs[snp][4]]
+        percents.append((float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
+                         float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
     SNP_list = zip(SNP_IDs, percents)
     # Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
     axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
     annotes = [snp[0] for snp in SNP_list]
-    # x, y = [], []
-    # for i in axis:
-    #     if i[1] <= i[0] < 0.8:
-    #         x.extend(i[0])
-    #         y.extend(i[1])
-    #     elif i[0] >= 0.8:
-    #         x.extend(i[0])
-    #         y.extend(i[1])
-    #     else:
-    #         pass
     x = [x[0] for x in axis]
     y = [y[1] for y in axis]
-    t = [(vector[0]*vector[1]) for vector in axis]
+    scale = [float(vector[0])*float(vector[1]) for vector in axis]
 
     # Plots the points above, and can be used to tie in individual SNP IDs
     fig, ax = plt.subplots()
-    ax.scatter(x, y, color=t, cmap=cm.YlOrRd, s=10, linewidths=0.1, edgecolors='black', alpha=0.7)
-    # lims = [np.min([0, 0]),  # min of both axes
-    #         np.max([1, 1.001]),  # max of both axes
-    #         ]
+    ax.scatter(x, y, color=scale, cmap=cm.YlOrRd, s=10, linewidths=0.1, edgecolors='black', alpha=0.7)
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
