@@ -34,9 +34,15 @@ class CommentedFile:
     def __init__(self, f, commentstring="#"):
         self.f = f
         self.commentstring = commentstring
+        self.length = None
+        self.item = 0
 
     def next(self):
         line = self.f.next()
+        if line.startswith("##ID"):
+            line = self.f.next()
+        if line.startswith("##"):
+            self.length = int(line.split()[4])-int(line.split()[3])
         while line.startswith(self.commentstring):
             line = self.f.next()
         return line
@@ -155,7 +161,8 @@ class AnnoteFinder(object):
 
 def meta_list(LIST):
     try:
-        output = (sum(1 for rna in LIST if rna[0] > 0.0)/len(LIST), sum(1 for ribo in LIST if ribo[1] > 0)/len(LIST))
+        output = (sum(1 for rna in LIST if rna[0] > 0.0)/len(LIST),
+                  sum(1 for ribo in LIST if ribo[1] > 0)/len(LIST))
         return output
     except ZeroDivisionError:
         return 0
@@ -167,46 +174,67 @@ def main():
     global SNPs
     path_name, snp_files = file_globber()
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
-        CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
+        open(snp, "rb"), delimiter='\t') if ("##ID" or "#Sample") not in row])
+                   for snp in snp_files]
+    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]), snp[1][2:])
+                   for snp in sampleGroup]
+    # sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
+    #     CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
     genos = []
     for snp in sampleGroup:
         ID = snp[0]
-        ref = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1] if "0|0" in sample[1]])
-        het = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1] if ("1|0" or "0|1") in sample[1]])
-        alt = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1] if "1|1" in sample[1]])
-        raw = np.asarray([(float(sample[2]), float(sample[3])) for sample in snp[1]])
+        Lengths = snp[1]
+        ref = np.asarray([(float(sample[2]), float(sample[3])) for sample
+                          in snp[2] if "0|0" in sample[2]])
+        het = np.asarray([(float(sample[2]), float(sample[3])) for sample
+                          in snp[2] if ("1|0" or "0|1") in sample[2]])
+        alt = np.asarray([(float(sample[2]), float(sample[3])) for sample
+                          in snp[2] if "1|1" in sample[2]])
+        raw = np.asarray([(float(sample[2]), float(sample[3])) for sample
+                          in snp[2]])
         try:
-            if np.mean([lst[0] for lst in ref]) < np.mean([lst[0] for lst in het]) < np.mean([lst[0] for lst in alt]):
-                genos.append([ID, ref, het, alt, raw])
+            if np.mean([lst[1] for lst in ref])\
+                    < np.mean([lst[1] for lst in het])\
+                    < np.mean([lst[1] for lst in alt]):
+                genos.append([ID, Lengths, ref, het, alt, raw])
             else:
                 pass
         except RuntimeWarning:
             pass
 
-    SNPs = genos[:]
+
+    SNPs = np.array(genos[:])
     qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
     SNP_IDs = [snp[0] for snp in SNPs]
+    SNP_len = [snp[1] for snp in SNPs]
+    SNP_ratio = [math.log(np.mean(SNPs[4]), 2)/math.log(np.mean(SNPs[2]), 2)]
     percents = []
     for snp in range(len(SNPs)):
-        step = [(sample[0], sample[1]) for sample in SNPs[snp][4]]
-        percents.append((float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
-                         float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
-    SNP_list = zip(SNP_IDs, percents)
+        step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
+        percents.append(
+            (float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
+             float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
+    # SNP_list = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
     # Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
-    axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
-    annotes = [snp[0] for snp in SNP_list]
-    x = [x[0] for x in axis]
-    y = [y[1] for y in axis]
-    scale = [float(vector[0])*float(vector[1]) for vector in axis]
+    # axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
+    annotes = SNP_IDs
+    sizes = (SNP_len / np.mean(SNP_len)) * 10
+    colors = SNP_ratio
+    x = [snp[0] for snp in percents]
+    y = [snp[1] for snp in percents]
+    # x = [x[0] for x in axis]
+    # y = [y[1] for y in axis]
+    # scale = [float(vector[0])*float(vector[1]) for vector in axis]
 
     # Plots the points above, and can be used to tie in individual SNP IDs
     fig, ax = plt.subplots()
-    ax.scatter(x, y, color=scale, cmap=cm.YlOrRd, s=10, linewidths=0.1, edgecolors='black', alpha=0.7)
+    ax.scatter(x, y, color=colors, cmap=cm.YlOrRd, s=sizes, linewidths=0.1,
+               edgecolors='black', alpha=0.7)
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
-    ax.set_xlim(0,1)
-    ax.set_ylim(0,1)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
     ax.set_aspect('equal')
     ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
     af = AnnoteFinder(x, y, annotes, ax=ax)
