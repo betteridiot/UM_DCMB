@@ -201,14 +201,14 @@ def main():
         except IndexError:
             pass
 
-    SNPs = np.asarray(genos)
+    SNPs = genos[:]
     pickle.dump(SNPs, open("/home/mdsherm/Project/UM_DCMB/SNPs.pkl", "wb"))
     pickle.dump(genos, open("/home/mdsherm/Project/UM_DCMB/genos.pkl", "wb"))
     qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
     SNP_IDs = [snp[0] for snp in SNPs]
     SNP_len = [snp[1] for snp in SNPs]
-    SNP_ratio = [math.log(np.mean(snp[4], axis=0), 2)
-                 / math.log(np.mean(snp[2], axis=0), 2) for snp in SNPs]
+    SNP_ratio = [math.log(np.mean(np.array(snp[4]), axis=0)[1], 2)
+                 / math.log(np.mean(np.array(snp[2]), axis=0)[1], 2) for snp in SNPs]
     # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
     #              /math.log(np.mean(SNPs[2], axis=0), 2)]
     percents = []
