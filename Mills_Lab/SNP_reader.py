@@ -201,8 +201,7 @@ def main():
         except IndexError:
             pass
 
-
-    SNPs = np.array(genos, copy=True)
+    SNPs = np.asarray(genos)
     pickle.dump(SNPs, open("/home/mdsherm/Project/UM_DCMB/SNPs.pkl", "wb"))
     pickle.dump(genos, open("/home/mdsherm/Project/UM_DCMB/genos.pkl", "wb"))
     qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
