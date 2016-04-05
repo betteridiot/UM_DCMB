@@ -174,7 +174,7 @@ def main():
     global SNPs
     path_name, snp_files = file_globber()
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
-        open(snp, "rb"), delimiter='\t') if "##ID" or "#Sample" not in row[0]]) for snp in snp_files]
+        open(snp, "rb"), delimiter='\t') if ('##ID' or '#Sample') not in row[0]]) for snp in snp_files]
     print(sampleGroup[1])
     print(sampleGroup[1][1])
     print(sampleGroup[1][1][4])
