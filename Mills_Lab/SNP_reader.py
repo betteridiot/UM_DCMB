@@ -175,11 +175,9 @@ def main():
     path_name, snp_files = file_globber()
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
         open(snp, "rb"), delimiter='\t') if ('##ID' or '#Sample') not in row[0]]) for snp in snp_files]
-    print(sampleGroup[1])
-    print(sampleGroup[1][1])
-    print(sampleGroup[1][1][4])
-    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]), snp[1][2:])
+    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]), snp[1][3:])
                    for snp in sampleGroup]
+    print(sampleGroup[1][1])
     # sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
     #     CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
     genos = []
