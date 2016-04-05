@@ -216,6 +216,7 @@ def main():
         percents.append(
             (float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
              float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
+    print(percents[1])
     # SNP_list = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
     # Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
     # axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
@@ -230,7 +231,7 @@ def main():
 
     # Plots the points above, and can be used to tie in individual SNP IDs
     fig, ax = plt.subplots()
-    ax.scatter(x, y, color=colors, cmap=cm.YlOrRd, linewidths=0.1,
+    ax.scatter(x, y, color=colors, cmap=cm.YlOrRd, s=sizes, linewidths=0.1,
                edgecolors='black', alpha=0.7)
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
