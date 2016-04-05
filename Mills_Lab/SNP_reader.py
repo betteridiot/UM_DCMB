@@ -111,12 +111,12 @@ class AnnoteFinder(object):
         global SNPs
         idx = qLook.get(string)
         if idx is not None:
-            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '1|0' or '0|1' in row[1]])
-            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][1] if '1|0' or '0|1' in row[1]])
-            homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '1|1' in row[1]])
-            homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][1] if '1|1' in row[1]])
-            refrna = np.asarray([float(row[2]) for row in sampleGroup[idx][1] if '0|0' in row[1]])
-            refribo = np.asarray([float(row[3]) for row in sampleGroup[idx][1] if '0|0' in row[1]])
+            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2] if '1|0' or '0|1' in row[1]])
+            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2] if '1|0' or '0|1' in row[1]])
+            homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][2] if '1|1' in row[1]])
+            homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2] if '1|1' in row[1]])
+            refrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2] if '0|0' in row[1]])
+            refribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2] if '0|0' in row[1]])
             rna = [refrna, hetrna, homorna]
             ribo = [refribo, hetribo, homoribo]
             ticks = ["0|0", "0|1", "1|1"]
@@ -213,13 +213,11 @@ def main():
     # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
     #              /math.log(np.mean(SNPs[2], axis=0), 2)]
     percents = []
-    print(SNPs[1][5])
     for snp in range(len(SNPs)):
         step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
         percents.append(
             (float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
              float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
-    print(percents[1])
     # SNP_list = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
     # Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
     # axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
