@@ -211,6 +211,7 @@ def main():
     # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
     #              /math.log(np.mean(SNPs[2], axis=0), 2)]
     percents = []
+    print(SNPs[1][5])
     for snp in range(len(SNPs)):
         step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
         percents.append(
