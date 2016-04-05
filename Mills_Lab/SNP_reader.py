@@ -185,22 +185,20 @@ def main():
     for snp in sampleGroup:
         ID = snp[0]
         Lengths = snp[1]
-        ref = np.asarray([(float(sample[2]), float(sample[3])) for sample
-                          in snp[2] if "0|0" in sample[2]])
-        het = np.asarray([(float(sample[2]), float(sample[3])) for sample
-                          in snp[2] if ("1|0" or "0|1") in sample[2]])
-        alt = np.asarray([(float(sample[2]), float(sample[3])) for sample
-                          in snp[2] if "1|1" in sample[2]])
-        raw = np.asarray([(float(sample[2]), float(sample[3])) for sample
-                          in snp[2]])
+        ref = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2] if "0|0" in sample[1]])
+        het = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2] if "1|0" or "0|1" in sample[1]])
+        alt = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2] if "1|1" in sample[1]])
+        raw = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2]])
         try:
-            if np.mean([lst[1] for lst in ref])\
-                    < np.mean([lst[1] for lst in het])\
-                    < np.mean([lst[1] for lst in alt]):
+            if np.mean(ref, axis=0)[1] < np.mean(het, axis=0)[1] < np.mean(alt, axis=0)[1]:
                 genos.append([ID, Lengths, ref, het, alt, raw])
             else:
                 pass
-        except RuntimeWarning:
+        except IndexError:
             pass
 
 
