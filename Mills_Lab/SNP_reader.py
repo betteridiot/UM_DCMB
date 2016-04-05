@@ -203,6 +203,9 @@ def main():
 
 
     SNPs = np.array(genos[:])
+    import pickle
+    pickle.dump(SNPs, "/home/mdsherm/Project/UM_DCMB/SNPs.pkl")
+    pickle.dump(genos, "/home/mdsherm/Project/UM_DCMB/genos.pkl")
     qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
     SNP_IDs = [snp[0] for snp in SNPs]
     SNP_len = [snp[1] for snp in SNPs]
