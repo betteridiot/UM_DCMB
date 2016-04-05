@@ -207,8 +207,8 @@ def main():
     qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
     SNP_IDs = [snp[0] for snp in SNPs]
     SNP_len = [snp[1] for snp in SNPs]
-    SNP_ratio = [math.log(np.mean(np.array(snp[4]), axis=0)[1], 2)
-                 / math.log(np.mean(np.array(snp[2]), axis=0)[1], 2) for snp in SNPs]
+    SNP_ratio = [np.log2(np.mean(np.array(snp[4]), axis=0)[1]
+                 / np.mean(np.array(snp[2]), axis=0)[1], 2) for snp in SNPs]
     # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
     #              /math.log(np.mean(SNPs[2], axis=0), 2)]
     percents = []
