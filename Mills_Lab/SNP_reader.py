@@ -177,6 +177,7 @@ def main():
         open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
     sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
                     snp[1][3:]) for snp in sampleGroup]
+    pickle.dump(sampleGroup, open("/home/mdsherm/Project/UM_DCMB/SG.pkl", "wb"))
     # sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
     #     CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
     genos = []
