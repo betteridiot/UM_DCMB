@@ -111,12 +111,18 @@ class AnnoteFinder(object):
         global SNPs
         idx = qLook.get(string)
         if idx is not None:
-            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2] if '1|0' or '0|1' in row[1]])
-            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2] if '1|0' or '0|1' in row[1]])
-            homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][2] if '1|1' in row[1]])
-            homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2] if '1|1' in row[1]])
-            refrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2] if '0|0' in row[1]])
-            refribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2] if '0|0' in row[1]])
+            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
+                                 if '1|0' or '0|1' in row[1]])
+            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
+                                  if '1|0' or '0|1' in row[1]])
+            homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
+                                  if '1|1' in row[1]])
+            homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
+                                   if '1|1' in row[1]])
+            refrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
+                                 if '0|0' in row[1]])
+            refribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
+                                  if '0|0' in row[1]])
             rna = [refrna, hetrna, homorna]
             ribo = [refribo, hetribo, homoribo]
             ticks = ["0|0", "0|1", "1|1"]
