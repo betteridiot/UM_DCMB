@@ -4,6 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import glob
+import pickle
 import math
 import numpy as np
 import os
@@ -204,7 +205,6 @@ def main():
 
 
     SNPs = np.array(genos[:])
-    import pickle
     pickle.dump(SNPs, open("/home/mdsherm/Project/UM_DCMB/SNPs.pkl", "wb"))
     pickle.dump(genos, open("/home/mdsherm/Project/UM_DCMB/genos.pkl", "wb"))
     qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
