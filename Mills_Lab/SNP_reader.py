@@ -175,7 +175,9 @@ def main():
     path_name, snp_files = file_globber()
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
         open(snp, "rb"), delimiter='\t') if "##ID" or "#Sample" not in row[0]]) for snp in snp_files]
-    print(int(sampleGroup[1][1][4])-int(sampleGroup[1][1][3]))
+    print(sampleGroup[1])
+    print(sampleGroup[1][1])
+    print(sampleGroup[1][1][4])
     sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]), snp[1][2:])
                    for snp in sampleGroup]
     # sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
