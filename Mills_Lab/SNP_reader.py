@@ -175,8 +175,8 @@ def main():
     path_name, snp_files = file_globber()
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
         open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
-    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]), snp[1][3:]) for snp in sampleGroup]
-    print(sampleGroup[1][1])
+    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
+                    snp[1][3:]) for snp in sampleGroup]
     # sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
     #     CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
     genos = []
@@ -206,7 +206,10 @@ def main():
     qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
     SNP_IDs = [snp[0] for snp in SNPs]
     SNP_len = [snp[1] for snp in SNPs]
-    SNP_ratio = [math.log(np.mean(SNPs[4]), 2)/math.log(np.mean(SNPs[2]), 2)]
+    SNP_ratio = [math.log(np.mean(snp[4], axis=0), 2)
+                 / math.log(np.mean(snp[2], axis=0), 2) for snp in SNPs]
+    # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
+    #              /math.log(np.mean(SNPs[2], axis=0), 2)]
     percents = []
     for snp in range(len(SNPs)):
         step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
