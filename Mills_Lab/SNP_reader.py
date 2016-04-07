@@ -140,7 +140,9 @@ class AnnoteFinder(object):
             axribo = figribo.add_subplot(111)
             axribo.boxplot(ribo, labels=ticks)
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna))))
+                            % sum((len(hetrna), len(homorna), len(refrna)))
+                             + '\n' + 'log2[(1|1)/(0|0)] = %f'
+                             % np.log2(np.mean(homoribo)/np.mean(refribo)))
             axribo.set_ylabel(ylab)
             axribo.set_xlabel(xlab)
             figribo.show()
