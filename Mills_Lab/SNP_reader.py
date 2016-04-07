@@ -268,8 +268,8 @@ def main():
         #     SNP_ratio.append(row[2])
         #     percents.append(row[3])
     SNP_len = [length[1] for length in pkl]
+    sizes = (SNP_len / np.mean(SNP_len)) * 10
     annotes = [snp_IDs[0] for snp_IDs in pkl]
-    sizes = (SNP_len[1] / np.mean(SNP_len)) * 10
     colors = [snp_ratio[2] for snp_ratio in pkl]
     percents = [p100[3] for p100 in pkl]
     print(min(colors), max(colors))
