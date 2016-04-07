@@ -125,7 +125,9 @@ class AnnoteFinder(object):
                                   if '0|0' in row[1]])
             rna = [refrna, hetrna, homorna]
             ribo = [refribo, hetribo, homoribo]
-            ticks = ["0|0", "0|1", "1|1"]
+            ticks = ["0|0 (n=%d)" % len(refrna),
+                     "0|1 (n=%d)" % len(hetrna),
+                     "1|1 (n=%d)" % len(homorna)]
             xlab = "Genotypes"
             ylab = "FPKM"
             title = string
