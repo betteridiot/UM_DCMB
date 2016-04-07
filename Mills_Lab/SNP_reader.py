@@ -183,7 +183,10 @@ def main():
         if not "-n" in sys.argv[1] :
             path_name = sys.argv[1]
         elif "-n" in sys.argv[1]:
-            rm(sys.argv[2] + '/pkl')
+            try:
+                rm(sys.argv[2] + '/pkl')
+            except OSError:
+                pass
     except IndexError:
         path_name = '/home/mdsherm/Project/SNuPer_results/chr22'
     if not os.path.isdir(path_name + '/pkl'):
