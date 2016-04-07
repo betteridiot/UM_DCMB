@@ -19,13 +19,12 @@ script works from from the command line.
 """
 
 
-def file_globber():
-    global path_name
+def file_globber(pathname):
     snp_files = []
-    for dirs, _, files in os.walk(path_name):
+    for dirs, _, files in os.walk(pathname):
         if "SNPs" in dirs:
             snp_files.extend(glob.glob(os.path.join(dirs, "*")))
-    return path_name, snp_files
+    return snp_files
 
 
 class CommentedFile:
@@ -190,7 +189,7 @@ def main():
     if not os.path.isdir(path_name + '/pkl'):
         os.mkdir(path_name + '/pkl')
     if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
-        path_name, snp_files = file_globber()
+        snp_files = file_globber(path_name)
         sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
             open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
         sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
