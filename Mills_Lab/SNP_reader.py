@@ -131,14 +131,16 @@ class AnnoteFinder(object):
             figrna = plt.figure()
             axrna = figrna.add_subplot(111)
             axrna.boxplot(rna, labels=ticks)
-            axrna.set_title(title + ": RNA-seq")
+            axrna.set_title(title + ": RNA-seq (N=%d)"
+                            % sum((len(hetrna), len(homorna), len(refrna))))
             axrna.set_ylabel(ylab)
             axrna.set_xlabel(xlab)
             figrna.show()
             figribo = plt.figure()
             axribo = figribo.add_subplot(111)
             axribo.boxplot(ribo, labels=ticks)
-            axribo.set_title(title + ": Ribosome Profiling")
+            axribo.set_title(title + ": Ribosome Profiling (N=%d)"
+                            % sum((len(hetrna), len(homorna), len(refrna))))
             axribo.set_ylabel(ylab)
             axribo.set_xlabel(xlab)
             figribo.show()
