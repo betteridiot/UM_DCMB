@@ -282,7 +282,7 @@ def main():
                vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
     # cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
     fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
-                 anchor=(0.0, 0.0), drawedges=False)
+                 anchor=(0.0, 0.0), pad=0.01, drawedges=False)
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
