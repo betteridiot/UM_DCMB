@@ -178,7 +178,7 @@ def main():
     global qLook
     global sampleGroup
     global SNPs
-    global path_name
+
     try:
         if not "-n" in sys.argv[1] :
             path_name = sys.argv[1]
