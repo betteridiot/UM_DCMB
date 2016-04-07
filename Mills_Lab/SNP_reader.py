@@ -182,13 +182,14 @@ def main():
     global SNPs
 
     try:
-        if not "-n" in sys.argv[1] :
-            path_name = sys.argv[1]
-        elif "-n" in sys.argv[1]:
+        if "-n" in sys.argv[1]:
             try:
-                rm(sys.argv[2] + '/pkl')
+                path_name = sys.argv[2]
+                rm(path_name + '/pkl')
             except OSError:
                 path_name = sys.argv[2]
+        else:
+            path_name = sys.argv[1]
     except IndexError:
         path_name = '/home/mdsherm/Project/SNuPer_results/chr22'
     if not os.path.isdir(path_name + '/pkl'):
