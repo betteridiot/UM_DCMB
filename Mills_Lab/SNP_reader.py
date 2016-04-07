@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from shutil import rmtree as rm
 # import matplotlib.cm as cm
 import glob
 import pickle
@@ -19,10 +20,7 @@ script works from from the command line.
 
 
 def file_globber():
-    try:
-        path_name = sys.argv[1]
-    except IndexError:
-        path_name = '/home/mdsherm/Project/SNuPer_results/chr22'
+    global path_name
     snp_files = []
     for dirs, _, files in os.walk(path_name):
         if "SNPs" in dirs:
@@ -181,9 +179,12 @@ def main():
     global qLook
     global sampleGroup
     global SNPs
-
+    global path_name
     try:
-        path_name = sys.argv[1]
+        if not "-n" in sys.argv[1] :
+            path_name = sys.argv[1]
+        elif "-n" in sys.argv[1]:
+            rm(sys.argv[2] + '/pkl')
     except IndexError:
         path_name = '/home/mdsherm/Project/SNuPer_results/chr22'
     if not os.path.isdir(path_name + '/pkl'):
