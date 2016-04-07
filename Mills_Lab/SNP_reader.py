@@ -246,9 +246,9 @@ def main():
             open(path_name + "/pkl/qLook.pkl", "rb"))
         SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
         for row in pkl:
-            SNP_IDs.extend(row[0])
-            SNP_len.extend(row[1])
-            SNP_ratio.extend(row[2])
+            SNP_IDs.append(row[0])
+            SNP_len.append(row[1])
+            SNP_ratio.append(row[2])
             percents.append(row[3])
     annotes = SNP_IDs
     sizes = (SNP_len / np.mean(SNP_len)) * 10
