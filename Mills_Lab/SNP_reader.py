@@ -141,7 +141,7 @@ class AnnoteFinder(object):
             axribo.boxplot(ribo, labels=ticks)
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna)))
-                             + '\n' + 'log2[(1|1)/(0|0)] = %f'
+                             + '\n' + 'log2[alt/ref] = %f'
                              % np.log2(np.mean(homoribo)/np.mean(refribo)))
             axribo.set_ylabel(ylab)
             axribo.set_xlabel(xlab)
@@ -274,8 +274,9 @@ def main():
 
     # Plots the points above, and can be used to tie in individual SNP IDs
     fig, ax = plt.subplots()
-    ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'),
-               s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
+    ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
+               vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
+    plt.colorbar()
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
