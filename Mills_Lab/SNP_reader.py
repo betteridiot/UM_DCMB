@@ -112,9 +112,9 @@ class AnnoteFinder(object):
         idx = qLook.get(string)
         if idx is not None:
             hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
-                                 if '1|0' or '0|1' in row[1]])
+                                 if ('1|0' or '0|1') in row[1]])
             hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
-                                  if '1|0' or '0|1' in row[1]])
+                                  if ('1|0' or '0|1') in row[1]])
             homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
                                   if '1|1' in row[1]])
             homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
@@ -201,7 +201,7 @@ def main():
             ref = np.array([(float(sample[2]), float(sample[3])) for sample
                    in snp[2] if "0|0" in sample[1]])
             het = np.array([(float(sample[2]), float(sample[3])) for sample
-                   in snp[2] if "1|0" or "0|1" in sample[1]])
+                   in snp[2] if ("1|0" or "0|1") in sample[1]])
             alt = np.array([(float(sample[2]), float(sample[3])) for sample
                    in snp[2] if "1|1" in sample[1]])
             raw = np.array([(float(sample[2]), float(sample[3])) for sample
@@ -244,6 +244,7 @@ def main():
             open(path_name + "/pkl/plotzip.pkl", "rb"))
         sampleGroup = pickle.load(
             open(path_name + "/pkl/SG.pkl", "rb"))
+        print(len(sampleGroup))
         qLook = pickle.load(
             open(path_name + "/pkl/qLook.pkl", "rb"))
         SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
