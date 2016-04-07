@@ -186,7 +186,7 @@ def main():
             try:
                 rm(sys.argv[2] + '/pkl')
             except OSError:
-                pass
+                path_name = sys.argv[2]
     except IndexError:
         path_name = '/home/mdsherm/Project/SNuPer_results/chr22'
     if not os.path.isdir(path_name + '/pkl'):
