@@ -252,6 +252,7 @@ def main():
         pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
         pickle.dump(pkl,
                     open(path_name + "/pkl/plotzip.pkl", "wb"))
+        pkl = [row for row in pkl if row[2] >= 0]
     else:
         pkl = pickle.load(
             open(path_name + "/pkl/plotzip.pkl", "rb"))
@@ -259,15 +260,18 @@ def main():
             open(path_name + "/pkl/SG.pkl", "rb"))
         qLook = pickle.load(
             open(path_name + "/pkl/qLook.pkl", "rb"))
-        SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
-        for row in pkl:
-            SNP_IDs.append(row[0])
-            SNP_len.append(row[1])
-            SNP_ratio.append(row[2])
-            percents.append(row[3])
-    annotes = SNP_IDs
-    sizes = (SNP_len / np.mean(SNP_len)) * 10
-    colors = SNP_ratio
+        pkl = [row for row in pkl if row[2] >= 0]
+        # SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
+        # for row in pkl:
+        #     SNP_IDs.append(row[0])
+        #     SNP_len.append(row[1])
+        #     SNP_ratio.append(row[2])
+        #     percents.append(row[3])
+    SNP_len = [length[1] for length in pkl]
+    annotes = [snp_IDs[0] for snp_IDs in pkl]
+    sizes = (SNP_len[1] / np.mean(SNP_len)) * 10
+    colors = [snp_ratio[2] for snp_ratio in pkl]
+    percents = [p100[3] for p100 in pkl]
     print(min(colors), max(colors))
     x = [snp[0] for snp in percents]
     y = [snp[1] for snp in percents]
