@@ -281,7 +281,7 @@ def main():
     a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
                vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
     cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
-    fig.colorbar(a, cax=cbaxes, ticks=None, drawedges=False, shrink=0.5)
+    fig.colorbar(a, cax=cbaxes, ticks=None, drawedges=False)
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
