@@ -257,7 +257,6 @@ def main():
             open(path_name + "/pkl/plotzip.pkl", "rb"))
         sampleGroup = pickle.load(
             open(path_name + "/pkl/SG.pkl", "rb"))
-        print(len(sampleGroup))
         qLook = pickle.load(
             open(path_name + "/pkl/qLook.pkl", "rb"))
         SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
@@ -269,6 +268,7 @@ def main():
     annotes = SNP_IDs
     sizes = (SNP_len / np.mean(SNP_len)) * 10
     colors = SNP_ratio
+    print(min(colors), max(colors))
     x = [snp[0] for snp in percents]
     y = [snp[1] for snp in percents]
 
@@ -276,7 +276,7 @@ def main():
     fig, ax = plt.subplots()
     a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
                vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
-    fig.colorbar(a, ticks=None, drawedges=False)
+    fig.colorbar(a, ticks=None, drawedges=False, shrink=0.5)
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
