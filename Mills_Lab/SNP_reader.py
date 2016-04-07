@@ -232,7 +232,12 @@ def main():
         SNP_IDs = [snp[0] for snp in SNPs]
         SNP_len = [snp[1] for snp in SNPs]
         SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
-                          np.mean(np.array(snp[2]), axis=0)[1] for snp in SNPs]
+                          np.mean(np.array(snp[2]), axis=0)[1]
+                          if np.mean(np.array(snp[2]), axis=0)[1] > 0
+                             and np.mean(np.array(snp[4]), axis=0)[1] > 0
+                          else np.mean(np.array(snp[4]), axis=0)[1]
+                          if np.mean(np.array(snp[4]), axis=0)[1] > 0
+                          else 0 for snp in SNPs]
         SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
         # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
         #              /math.log(np.mean(SNPs[2], axis=0), 2)]
