@@ -184,7 +184,9 @@ def main():
         path_name = sys.argv[1]
     except IndexError:
         path_name = '/home/mdsherm/Project/SNuPer_results/chr22'
-    if not os.path.isfile(path_name + '/plotzip.pkl'):
+    if not os.path.isdir(path_name + '/pkl'):
+        os.mkdir(path_name + '/pkl')
+    if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
         path_name, snp_files = file_globber()
         sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
             open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
@@ -214,11 +216,11 @@ def main():
         SNPs = genos[:]
         qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
         pickle.dump(genos,
-                    open(path_name + "/genos.pkl", "wb"))
+                    open(path_name + "/pkl/genos.pkl", "wb"))
         pickle.dump(sampleGroup,
-                    open(path_name + "/SG.pkl", "wb"))
+                    open(path_name + "/pkl/SG.pkl", "wb"))
         pickle.dump(qLook,
-                    open(path_name + "/qLook.pkl", "wb"))
+                    open(path_name + "/pkl/qLook.pkl", "wb"))
         SNP_IDs = [snp[0] for snp in SNPs]
         SNP_len = [snp[1] for snp in SNPs]
         SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
@@ -234,14 +236,14 @@ def main():
                  float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
         pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
         pickle.dump(pkl,
-                    open(path_name + "/plotzip.pkl", "wb"))
+                    open(path_name + "/pkl/plotzip.pkl", "wb"))
     else:
         pkl = pickle.load(
-            open(path_name + "/plotzip.pkl", "rb"))
+            open(path_name + "/pkl/plotzip.pkl", "rb"))
         sampleGroup = pickle.load(
-            open(path_name + "/SG.pkl", "rb"))
+            open(path_name + "/pkl/SG.pkl", "rb"))
         qLook = pickle.load(
-            open(path_name + "/qLook.pkl", "rb"))
+            open(path_name + "/pkl/qLook.pkl", "rb"))
         SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
         for row in pkl:
             SNP_IDs.extend(row[0])
