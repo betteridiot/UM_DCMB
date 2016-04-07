@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+# import matplotlib.cm as cm
 import glob
 import pickle
 import math
@@ -11,11 +11,11 @@ import os
 import sys
 import csv
 
-# TODO if getting unable to connect, exit status -1: go to Run config and set DISPLAY to either 14 or 10
-# path_name = '/home/mdsherm/Project/SNuPer_results/pythonTest/100ktest/'
-# snp_files = glob.glob(path_name+"*.snp")
-
-# TODO this is for globbing all SNPs through all subparts
+"""If getting unable to connect, exit status -1:
+go to Run config and set DISPLAY to either 14 or 10 if running debug mode.
+Furthermore, you need to be SSH in MobaXterm at the same time. Otherwise, this
+script works from from the command line.
+"""
 
 
 def file_globber():
@@ -179,67 +179,85 @@ def main():
     global qLook
     global sampleGroup
     global SNPs
-    path_name, snp_files = file_globber()
-    sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
-        open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
-    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
-                    snp[1][3:]) for snp in sampleGroup]
-    pickle.dump(sampleGroup, open("/home/mdsherm/Project/UM_DCMB/SG.pkl", "wb"))
-    # sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
-    #     CommentedFile(open(snp, "rb")), delimiter='\t')]) for snp in snp_files]
-    genos = []
-    for snp in sampleGroup:
-        ID = snp[0]
-        Lengths = snp[1]
-        ref = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2] if "0|0" in sample[1]])
-        het = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2] if "1|0" or "0|1" in sample[1]])
-        alt = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2] if "1|1" in sample[1]])
-        raw = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2]])
-        try:
-            if np.mean(ref, axis=0)[1] < np.mean(het, axis=0)[1] < np.mean(alt, axis=0)[1]:
-                genos.append([ID, Lengths, ref, het, alt, raw])
-            else:
-                pass
-        except IndexError:
-            pass
 
-    SNPs = genos[:]
-    pickle.dump(SNPs, open("/home/mdsherm/Project/UM_DCMB/SNPs.pkl", "wb"))
-    pickle.dump(genos, open("/home/mdsherm/Project/UM_DCMB/genos.pkl", "wb"))
-    qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
-    SNP_IDs = [snp[0] for snp in SNPs]
-    SNP_len = [snp[1] for snp in SNPs]
-    SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1]
-                 / np.mean(np.array(snp[2]), axis=0)[1] for snp in SNPs]
-    SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
-    # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
-    #              /math.log(np.mean(SNPs[2], axis=0), 2)]
-    percents = []
-    for snp in range(len(SNPs)):
-        step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
-        percents.append(
-            (float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
-             float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
-    # SNP_list = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
-    # Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
-    # axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
+    try:
+        path_name = sys.argv[1]
+    except IndexError:
+        path_name = '/home/mdsherm/Project/SNuPer_results/chr22'
+    if not os.path.isfile(path_name + '/plotzip.pkl'):
+        path_name, snp_files = file_globber()
+        sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
+            open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
+        sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
+                        snp[1][3:]) for snp in sampleGroup]
+        genos = []
+        for snp in sampleGroup:
+            ID = snp[0]
+            Lengths = snp[1]
+            ref = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "0|0" in sample[1]])
+            het = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "1|0" or "0|1" in sample[1]])
+            alt = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "1|1" in sample[1]])
+            raw = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2]])
+            try:
+                if np.mean(ref, axis=0)[1] < np.mean(
+                        het, axis=0)[1] < np.mean(alt, axis=0)[1]:
+                    genos.append([ID, Lengths, ref, het, alt, raw])
+                else:
+                    pass
+            except IndexError:
+                pass
+
+        SNPs = genos[:]
+        qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
+        pickle.dump(genos,
+                    open(path_name + "/genos.pkl", "wb"))
+        pickle.dump(sampleGroup,
+                    open(path_name + "/SG.pkl", "wb"))
+        pickle.dump(qLook,
+                    open(path_name + "/qLook.pkl", "wb"))
+        SNP_IDs = [snp[0] for snp in SNPs]
+        SNP_len = [snp[1] for snp in SNPs]
+        SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
+                          np.mean(np.array(snp[2]), axis=0)[1] for snp in SNPs]
+        SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
+        # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
+        #              /math.log(np.mean(SNPs[2], axis=0), 2)]
+        percents = []
+        for snp in range(len(SNPs)):
+            step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
+            percents.append(
+                (float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
+                 float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
+        pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
+        pickle.dump(pkl,
+                    open(path_name + "/plotzip.pkl", "wb"))
+    else:
+        pkl = pickle.load(
+            open(path_name + "/plotzip.pkl", "rb"))
+        sampleGroup = pickle.load(
+            open(path_name + "/SG.pkl", "rb"))
+        qLook = pickle.load(
+            open(path_name + "/qLook.pkl", "rb"))
+        SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
+        for row in pkl:
+            SNP_IDs.extend(row[0])
+            SNP_len.extend(row[1])
+            SNP_ratio.extend(row[2])
+            percents.append(row[3])
     annotes = SNP_IDs
     sizes = (SNP_len / np.mean(SNP_len)) * 10
     colors = SNP_ratio
     x = [snp[0] for snp in percents]
     y = [snp[1] for snp in percents]
-    # x = [x[0] for x in axis]
-    # y = [y[1] for y in axis]
-    # scale = [float(vector[0])*float(vector[1]) for vector in axis]
 
     # Plots the points above, and can be used to tie in individual SNP IDs
     fig, ax = plt.subplots()
-    ax.scatter(x, y, color=colors, cmap=cm.YlOrRd, s=sizes, linewidths=0.2,
-               edgecolors='black', alpha=0.8)
+    ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'),
+               s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
     ax.set_title("Chr22")
     ax.set_xlabel('%RNA-seq > 0.0')
     ax.set_ylabel('%Ribosome Profiling > 0.0')
