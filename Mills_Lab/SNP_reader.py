@@ -247,6 +247,7 @@ def main():
     global SNPs
 
     path_name = args.dir
+    os.chdir(path_name)
     # if not os.path.isdir(path_name + '/pkl'):
     #     os.mkdir(path_name + '/pkl')
     # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
