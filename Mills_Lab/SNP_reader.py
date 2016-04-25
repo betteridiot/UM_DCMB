@@ -14,16 +14,6 @@ import csv
 import fnmatch
 import argparse
 
-parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
-parser.add_argument('-d', action='store', dest='dir', help='root directory of interest',
-                    default='/home/mdsherm/Project/SNuPer_results/chr2')
-parser.add_argument('--rna', action='store', dest='rna',
-                    help='threshold for % of RNA-seq FPKM', default='.5')
-parser.add_argument('--ribo', action='store', dest='ribo',
-                    help='threshold for % of ribosomal profiling FPKM', default='.2')
-args = parser.parse_args()
-rna_thresh = float(args.rna)
-ribo_thresh = float(args.ribo)
 """If getting unable to connect, exit status -1:
 go to Run config and set DISPLAY to either 14 or 10 if running debug mode.
 Furthermore, you need to be SSH in MobaXterm at the same time. Otherwise, this
@@ -245,9 +235,19 @@ def main():
     global qLook
     global sampleGroup
     global SNPs
-
+    parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
+    parser.add_argument('-d', action='store', dest='dir', help='root directory of interest',
+                        default='/home/mdsherm/Project/SNuPer_results/chr2')
+    parser.add_argument('--rna', action='store', dest='rna', type=float,
+                        help='threshold for % of RNA-seq FPKM', default=.5)
+    parser.add_argument('--ribo', action='store', dest='ribo', type=float,
+                        help='threshold for % of ribosomal profiling FPKM', default=.2)
+    args = parser.parse_args()
     path_name = args.dir
     os.chdir(path_name)
+    rna_thresh = args.rna
+    ribo_thresh = args.ribo
+
     # if not os.path.isdir(path_name + '/pkl'):
     #     os.mkdir(path_name + '/pkl')
     # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
@@ -280,12 +280,12 @@ def main():
 
         SNPs = genos[:]
         qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
-        pickle.dump(genos,
-                    open(path_name + "/pkl/genos.pkl", "wb"))
-        pickle.dump(sampleGroup,
-                    open(path_name + "/pkl/SG.pkl", "wb"))
-        pickle.dump(qLook,
-                    open(path_name + "/pkl/qLook.pkl", "wb"))
+        # pickle.dump(genos,
+        #             open(path_name + "/pkl/genos.pkl", "wb"))
+        # pickle.dump(sampleGroup,
+        #             open(path_name + "/pkl/SG.pkl", "wb"))
+        # pickle.dump(qLook,
+        #             open(path_name + "/pkl/qLook.pkl", "wb"))
         SNP_IDs = [snp[0] for snp in SNPs]
         SNP_len = [snp[1] for snp in SNPs]
         SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
@@ -305,23 +305,23 @@ def main():
                 (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
                  float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
         pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
-        pickle.dump(pkl,
-                    open(path_name + "/pkl/plotzip.pkl", "wb"))
-        pkl = [row for row in pkl if row[2] >= 0]
-    else:
-        pkl = pickle.load(
-            open(path_name + "/pkl/plotzip.pkl", "rb"))
-        sampleGroup = pickle.load(
-            open(path_name + "/pkl/SG.pkl", "rb"))
-        qLook = pickle.load(
-            open(path_name + "/pkl/qLook.pkl", "rb"))
-        pkl = [row for row in pkl if row[2] >= 0]
-        # SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
-        # for row in pkl:
-        #     SNP_IDs.append(row[0])
-        #     SNP_len.append(row[1])
-        #     SNP_ratio.append(row[2])
-        #     percents.append(row[3])
+        # pickle.dump(pkl,
+        #             open(path_name + "/pkl/plotzip.pkl", "wb"))
+        # pkl = [row for row in pkl if row[2] >= 0]
+    # else:
+    #     pkl = pickle.load(
+    #         open(path_name + "/pkl/plotzip.pkl", "rb"))
+    #     sampleGroup = pickle.load(
+    #         open(path_name + "/pkl/SG.pkl", "rb"))
+    #     qLook = pickle.load(
+    #         open(path_name + "/pkl/qLook.pkl", "rb"))
+    #     pkl = [row for row in pkl if row[2] >= 0]
+    #     # SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
+    #     # for row in pkl:
+    #     #     SNP_IDs.append(row[0])
+    #     #     SNP_len.append(row[1])
+    #     #     SNP_ratio.append(row[2])
+    #     #     percents.append(row[3])
     SNP_len = [length[1] for length in pkl]
     sizes = (SNP_len / np.mean(SNP_len)) * 10
     annotes = [snp_IDs[0] for snp_IDs in pkl]
