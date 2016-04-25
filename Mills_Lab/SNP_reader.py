@@ -20,6 +20,17 @@ script works from from the command line.
 """
 
 def snp_set(lst):
+    """Makes a set list of SNPs that % of RNA & ribosome FPKM
+    is greater than 5. As it is a set, it only has unique entries
+    for each SNP, and therefore allows for control of duplicate
+    SNPs later.
+
+    Args:
+        lst (list): list of metadata files from given pathname
+
+    Returns:
+        setter (set): a set of unique SNPs that meet thresholds
+    """
     setter = set()
     for meta in lst:
         for row in csv.reader(open(meta, 'rb'), delimiter='\t'):
@@ -33,14 +44,34 @@ def snp_set(lst):
 
 
 def meta_catcher(ROOT, pattern):
-    results = []
+    """Collects the paths to all metadata files created from
+    ORFSNuPer.py
+
+    Args:
+        ROOT (str): root directory to walk through
+        pattern (str): how selection of files are filtered
+
+    Returns:
+        metas (list): list of metadata files and their paths
+    """
+    metas = []
     for root, sub, files in os.walk(ROOT):
         metadata = fnmatch.filter(files, pattern)
-        results.extend(os.path.join(root, f) for f in metadata)
-    return results
+        metas.extend(os.path.join(root, f) for f in metadata)
+    return metas
 
 
 def file_globber(pathname, setList):
+    """Walks through path to find files with prefixes present
+    in the snp set list created by snp_set()
+
+    Args:
+        pathname (str): root directory to walk through
+        setList (set): set of SNPs that meet basic criteria
+
+    Returns:
+        snp_files (list): a list of SNP files and their paths
+    """
     snp_files = []
     for dirs, _, files in os.walk(pathname):
         if "SNPs" in dirs:
