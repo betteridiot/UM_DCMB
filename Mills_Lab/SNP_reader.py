@@ -247,35 +247,35 @@ def main():
     global SNPs
 
     path_name = args.dir
-    if not os.path.isdir(path_name + '/pkl'):
-        os.mkdir(path_name + '/pkl')
-    if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
-        set_list = snp_set(meta_catcher(os.getcwd(), 'metadata'))
-        snp_files = file_globber(path_name, set_list)
-        sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
-            open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
-        sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
-                        snp[1][3:]) for snp in sampleGroup]
-        genos = []
-        for snp in sampleGroup:
-            ID = snp[0]
-            Lengths = snp[1]
-            ref = np.array([(float(sample[2]), float(sample[3])) for sample
-                   in snp[2] if "0|0" in sample[1]])
-            het = np.array([(float(sample[2]), float(sample[3])) for sample
-                   in snp[2] if "1|0" in sample[1] or "0|1" in sample[1]])
-            alt = np.array([(float(sample[2]), float(sample[3])) for sample
-                   in snp[2] if "1|1" in sample[1]])
-            raw = np.array([(float(sample[2]), float(sample[3])) for sample
-                   in snp[2]])
-            try:
-                if np.mean(ref, axis=0)[1] < np.mean(
-                        het, axis=0)[1] < np.mean(alt, axis=0)[1]:
-                    genos.append([ID, Lengths, ref, het, alt, raw])
-                else:
-                    pass
-            except IndexError:
+    # if not os.path.isdir(path_name + '/pkl'):
+    #     os.mkdir(path_name + '/pkl')
+    # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
+    set_list = snp_set(meta_catcher(os.getcwd(), 'metadata'))
+    snp_files = file_globber(path_name, set_list)
+    sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
+        open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
+    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
+                    snp[1][3:]) for snp in sampleGroup]
+    genos = []
+    for snp in sampleGroup:
+        ID = snp[0]
+        Lengths = snp[1]
+        ref = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2] if "0|0" in sample[1]])
+        het = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2] if "1|0" in sample[1] or "0|1" in sample[1]])
+        alt = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2] if "1|1" in sample[1]])
+        raw = np.array([(float(sample[2]), float(sample[3])) for sample
+               in snp[2]])
+        try:
+            if np.mean(ref, axis=0)[1] < np.mean(
+                    het, axis=0)[1] < np.mean(alt, axis=0)[1]:
+                genos.append([ID, Lengths, ref, het, alt, raw])
+            else:
                 pass
+        except IndexError:
+            pass
 
         SNPs = genos[:]
         qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
