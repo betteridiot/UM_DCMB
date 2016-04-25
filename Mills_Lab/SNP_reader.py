@@ -11,6 +11,7 @@ import numpy as np
 import os
 import sys
 import csv
+import fnmatch
 
 """If getting unable to connect, exit status -1:
 go to Run config and set DISPLAY to either 14 or 10 if running debug mode.
@@ -18,12 +19,32 @@ Furthermore, you need to be SSH in MobaXterm at the same time. Otherwise, this
 script works from from the command line.
 """
 
+def snp_set(lst):
+    setter = set()
+    for meta in lst:
+        for row in csv.reader(open(meta, 'rb'), delimiter='\t'):
+            if row[0].startswith("#"):
+                continue
+            elif all((row[5], row[6])) > 0.0:
+                setter.add(row[0])
+            else:
+                continue
+    return setter
 
-def file_globber(pathname):
+
+def meta_catcher(ROOT, pattern):
+    results = []
+    for root, sub, files in os.walk(ROOT):
+        metadata = fnmatch.filter(files, pattern)
+        results.extend(os.path.join(root, f) for f in metadata)
+    return results
+
+
+def file_globber(pathname, setList):
     snp_files = []
     for dirs, _, files in os.walk(pathname):
         if "SNPs" in dirs:
-            snp_files.extend(glob.glob(os.path.join(dirs, "*")))
+            snp_files.extend(['{}/{}'.format(dirs, f) for f in files if f.rpartition(':')[0] in setList])
     return snp_files
 
 
@@ -197,7 +218,8 @@ def main():
     if not os.path.isdir(path_name + '/pkl'):
         os.mkdir(path_name + '/pkl')
     if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
-        snp_files = file_globber(path_name)
+        set_list = snp_set(meta_catcher(os.getcwd(), 'metadata'))
+        snp_files = file_globber(path_name, set_list)
         sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
             open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
         sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
