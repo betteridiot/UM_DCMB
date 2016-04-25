@@ -1,8 +1,4 @@
-#Psuedocode
-#glob all of the SNP files
-#iteratively open and read in as tab delimited
-#skip lines with pound signs
-#find the ones that have both rna-seq and ribosome profiling data
+#!/usr/bin/env python
 
 from __future__ import print_function, division
 import matplotlib as mpl
