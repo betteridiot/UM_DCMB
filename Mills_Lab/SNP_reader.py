@@ -17,11 +17,13 @@ import argparse
 parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
 parser.add_argument('-d', action='store', dest='dir', help='root directory of interest',
                     default='/home/mdsherm/Project/SNuPer_results/chr2')
-parser.add_argument('--rna', action='store', dest='rna', type=float,
-                    help='threshold for % of RNA-seq FPKM', default=.5)
-parser.add_argument('--ribo', action='store', dest='ribo', type=float,
-                    help='threshold for % of ribosomal profiling FPKM', default=.2)
+parser.add_argument('--rna', action='store', dest='rna',
+                    help='threshold for % of RNA-seq FPKM', default='.5')
+parser.add_argument('--ribo', action='store', dest='ribo',
+                    help='threshold for % of ribosomal profiling FPKM', default='.2')
 args = parser.parse_args()
+rna_thresh = float(args.rna)
+ribo_thresh = float(args.ribo)
 """If getting unable to connect, exit status -1:
 go to Run config and set DISPLAY to either 14 or 10 if running debug mode.
 Furthermore, you need to be SSH in MobaXterm at the same time. Otherwise, this
@@ -299,8 +301,8 @@ def main():
         for snp in range(len(SNPs)):
             step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
             percents.append(
-                (float(sum(1 for rna in step if rna[0] > args.rna)/float(len(step))),
-                 float(sum(1 for ribo in step if ribo[1] > args.ribo)/float(len(step)))))
+                (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
+                 float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
         pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
         pickle.dump(pkl,
                     open(path_name + "/pkl/plotzip.pkl", "wb"))
