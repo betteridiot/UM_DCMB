@@ -5,7 +5,7 @@
       <paths name="Axiom">
         <serverdata>
           <mappings>
-            <mapping deploy="/Project/UM_DCMB" local="$PROJECT_DIR$" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

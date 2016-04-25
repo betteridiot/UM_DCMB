@@ -3,13 +3,14 @@
 from __future__ import print_function
 import os
 import gzip
-import glob
+# import glob
 import time
 import argparse
 import csv
 import dill as pickle
 import numpy as np
-from random import randint
+import string
+from random import randint, choice
 from pathos.multiprocessing import ProcessingPool as Pool
 # from multiprocessing import Pool, cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
@@ -331,19 +332,33 @@ def ORFSNuper():
     pre_potORFs = []
     global linecount
     linecount = 0
+    firstLine = True
     global samples
     with gzip.open(vcf, 'rt')as VCF:
+        sampleCheck = False
         # while orfcount <= 49:   # use when debugging
         for line in VCF:
             linecount += 1
             if "##" in line:
                 continue
             elif "#CHROM" in line:
+                sampleCheck = True
                 header = line.split()
                 samples = header[9:]
+                name = outDir.split('part', 1)[0] + "samples.pkl"
+                pickle.dump(samples, open(name, 'wb'))
                 popper(RNAsamp_crossref)
                 popper(Ribosamp_crossref)
+                firstLine = False
             else:
+                if not sampleCheck:
+                    name = outDir.split('part', 1)[0] + 'samples.pkl'
+                    with open(name, 'rb') as f:
+                        samples = pickle.load(f)
+                if firstLine:
+                    popper(RNAsamp_crossref)
+                    popper(Ribosamp_crossref)
+                    firstLine = False
                 columns = line.split()
 
                 # Check to see if it is a SNP
@@ -377,6 +392,10 @@ potORFs = np.split(np.asarray(pre_potORFs), modulo_check(pre_potORFs))
 potORFs = [sublist.tolist() for sublist in potORFs]
 
 
+def rand_gen(size=2, chars=string.ascii_uppercase):
+    return ''.join(choice(chars) for x in range(size))
+
+
 def file_writer(LIST):
     """Outputs a file to outputDir based on the object that is passed to it
 
@@ -385,7 +404,8 @@ def file_writer(LIST):
     """
     for snp in LIST:
         try:
-            filename = '%s%s_%s' % (outDir + "SNPs/", str(snp.chrom), str(snp.SNPpos))
+            filename = '%s%s_%s:%s.snp' % (outDir + "SNPs/", str(snp.chrom),
+                                           str(snp.SNPpos), rand_gen())
             if snp.RNAcount is None:
                 pass
             else:
@@ -416,9 +436,6 @@ def threader(lst, STEP):
     pool.join()
 
 
-
-
-
 def threadpool(lst):
     tmp1 = lst
     i = randint(1, 10)
@@ -444,7 +461,7 @@ file_writer(potORFs)
 
 # Writes a master file containing metadata for each SNP
 with open(outDir+"metadata", 'w') as meta:
-    writer = csv.writer(meta, delimiter='\t')
+    writer = csv.writer(meta, delimiter='\t', lineterminator='\n')
     header = ["#CHROM_SNPPOSITION", "%RNA-FPKM>0", "%ribo-FPKM>0", "%RNA-FPKM>1",
               "%ribo-FPKM>1", "%RNA-FPKM>5", "%ribo-FPKM>5", "%RNA-FPKM>10", "%ribo-FPKM>10"]
     writer.writerow(header)
