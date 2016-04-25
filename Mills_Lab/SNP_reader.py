@@ -247,8 +247,8 @@ def main():
         for snp in range(len(SNPs)):
             step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
             percents.append(
-                (float(sum(1 for rna in step if rna[0] > 0.0)/float(len(step))),
-                 float(sum(1 for ribo in step if ribo[1] > 0.0)/float(len(step)))))
+                (float(sum(1 for rna in step if rna[0] > 0.5)/float(len(step))),
+                 float(sum(1 for ribo in step if ribo[1] > 0.2)/float(len(step)))))
         pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
         pickle.dump(pkl,
                     open(path_name + "/pkl/plotzip.pkl", "wb"))
