@@ -37,7 +37,7 @@ def snp_set(lst):
         for row in csv.reader(open(meta, 'rb'), delimiter='\t'):
             if row[0].startswith("#"):
                 continue
-            elif all((row[5], row[6])) > 0.0:
+            elif all((row[5], row[6])) >= 0.5:
                 setter.add(row[0])
             else:
                 continue
@@ -239,9 +239,9 @@ def main():
     parser.add_argument('-d', action='store', dest='dir', help='root directory of interest',
                         default='/home/mdsherm/Project/SNuPer_results/chr2')
     parser.add_argument('--rna', action='store', dest='rna', type=float,
-                        help='threshold for % of RNA-seq FPKM', default=.5)
+                        help='threshold for %% of RNA-seq FPKM', default=.5)
     parser.add_argument('--ribo', action='store', dest='ribo', type=float,
-                        help='threshold for % of ribosomal profiling FPKM', default=.2)
+                        help='threshold for %% of ribosomal profiling FPKM', default=.2)
     args = parser.parse_args()
     path_name = args.dir
     os.chdir(path_name)
