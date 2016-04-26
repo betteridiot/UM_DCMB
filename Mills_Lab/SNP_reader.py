@@ -13,6 +13,7 @@ import sys
 import csv
 import fnmatch
 import argparse
+from operator import itemgetter
 
 """If getting unable to connect, exit status -1:
 go to Run config and set DISPLAY to either 14 or 10 if running debug mode.
@@ -239,7 +240,7 @@ def main():
     global SNPs
     parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
     parser.add_argument('-d', action='store', dest='dir', help='root directory of interest',
-                        default='/home/mdsherm/Project/SNuPer_results/chr2')
+                        default='/home/mdsherm/Project/SNuPer_results/')
     parser.add_argument('--rna', action='store', dest='rna', type=float,
                         help='threshold for %% of RNA-seq FPKM', default=.5)
     parser.add_argument('--ribo', action='store', dest='ribo', type=float,
@@ -307,6 +308,8 @@ def main():
             (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
              float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
     pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
+    top = sorted(pkl, key=itemgetter(2))
+    top = top[:1000]
         # pickle.dump(pkl,
         #             open(path_name + "/pkl/plotzip.pkl", "wb"))
         # pkl = [row for row in pkl if row[2] >= 0]
@@ -324,11 +327,11 @@ def main():
     #     #     SNP_len.append(row[1])
     #     #     SNP_ratio.append(row[2])
     #     #     percents.append(row[3])
-    SNP_len = [length[1] for length in pkl]
+    SNP_len = [length[1] for length in top]
     sizes = (SNP_len / np.mean(SNP_len)) * 10
-    annotes = [snp_IDs[0] for snp_IDs in pkl]
-    colors = [snp_ratio[2] for snp_ratio in pkl]
-    percents = [p100[3] for p100 in pkl]
+    annotes = [snp_IDs[0] for snp_IDs in top]
+    colors = [snp_ratio[2] for snp_ratio in top]
+    percents = [p100[3] for p100 in top]
     print(min(colors), max(colors))
     x = [snp[0] for snp in percents]
     y = [snp[1] for snp in percents]
@@ -341,9 +344,9 @@ def main():
     fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
                  anchor=(0.0, 0.0), pad=0.01, drawedges=False,
                  label='log2(alt/ref)')
-    ax.set_title("Chr22")
-    ax.set_xlabel('%RNA-seq > 0.0')
-    ax.set_ylabel('%Ribosome Profiling > 0.0')
+    # ax.set_title("Chr22")
+    ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
+    ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.set_aspect('equal')
