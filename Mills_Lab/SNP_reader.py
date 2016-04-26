@@ -310,8 +310,9 @@ def main():
         percents.append(
             (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
              float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
-    top = zip(SNP_IDs, SNP_len, SNP_ratio, percents).sort(key=itemgetter(2))[:1000]
-    # top = sorted(pkl, key=itemgetter(2))
+    pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
+    pickle.dump(pkl, open(path_name + "/pkl/plotzip.pkl", "wb"))
+    top = sorted(pkl, key=itemgetter(2))[:args.top]
     # top = top[:args.top]
         # pickle.dump(pkl,
         #             open(path_name + "/pkl/plotzip.pkl", "wb"))
