@@ -41,6 +41,7 @@ def snp_set(lst):
                 setter.add(row[0])
             else:
                 continue
+    print("{} unique SNPs".format(len(setter)))
     return setter
 
 
@@ -77,7 +78,7 @@ def file_globber(pathname, setList):
     for dirs, _, files in os.walk(pathname):
         if "SNPs" in dirs:
             snp_files.extend(['{}/{}'.format(dirs, f) for f in files if f.rpartition(':')[0] in setList])
-    print('{} SNP files to be processes'.format(len(snp_files)))
+    print('{} SNP files to be processed'.format(len(snp_files)))
     return snp_files
 
 
