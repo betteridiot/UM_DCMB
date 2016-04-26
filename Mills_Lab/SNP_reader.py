@@ -77,6 +77,7 @@ def file_globber(pathname, setList):
     for dirs, _, files in os.walk(pathname):
         if "SNPs" in dirs:
             snp_files.extend(['{}/{}'.format(dirs, f) for f in files if f.rpartition(':')[0] in setList])
+    print('{} SNP files to be processes'.format(len(snp_files)))
     return snp_files
 
 
@@ -244,13 +245,13 @@ def main():
                         help='threshold for %% of ribosomal profiling FPKM', default=.2)
     args = parser.parse_args()
     path_name = args.dir
-    os.chdir(path_name)
+    # os.chdir(path_name)
     rna_thresh = args.rna
     ribo_thresh = args.ribo
     # if not os.path.isdir(path_name + '/pkl'):
     #     os.mkdir(path_name + '/pkl')
     # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
-    set_list = snp_set(meta_catcher(os.getcwd(), 'metadata'))
+    set_list = snp_set(meta_catcher(path_name, 'metadata'))
     snp_files = file_globber(path_name, set_list)
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
         open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
