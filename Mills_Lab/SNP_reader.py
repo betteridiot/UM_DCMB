@@ -253,6 +253,7 @@ def main():
     # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
     set_list = snp_set(meta_catcher(path_name, 'metadata'))
     snp_files = file_globber(path_name, set_list)
+    pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
     sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
         open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
     sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
@@ -278,33 +279,33 @@ def main():
         except IndexError:
             pass
 
-        SNPs = genos[:]
-        qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
-        # pickle.dump(genos,
-        #             open(path_name + "/pkl/genos.pkl", "wb"))
-        # pickle.dump(sampleGroup,
-        #             open(path_name + "/pkl/SG.pkl", "wb"))
-        # pickle.dump(qLook,
-        #             open(path_name + "/pkl/qLook.pkl", "wb"))
-        SNP_IDs = [snp[0] for snp in SNPs]
-        SNP_len = [snp[1] for snp in SNPs]
-        SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
-                          np.mean(np.array(snp[2]), axis=0)[1]
-                          if np.mean(np.array(snp[2]), axis=0)[1] > 0
-                             and np.mean(np.array(snp[4]), axis=0)[1] > 0
-                          else np.mean(np.array(snp[4]), axis=0)[1]
-                          if np.mean(np.array(snp[4]), axis=0)[1] > 0
-                          else 0 for snp in SNPs]
-        SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
-        # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
-        #              /math.log(np.mean(SNPs[2], axis=0), 2)]
-        percents = []
-        for snp in range(len(SNPs)):
-            step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
-            percents.append(
-                (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
-                 float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
-        pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
+    SNPs = genos[:]
+    qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
+    # pickle.dump(genos,
+    #             open(path_name + "/pkl/genos.pkl", "wb"))
+    # pickle.dump(sampleGroup,
+    #             open(path_name + "/pkl/SG.pkl", "wb"))
+    # pickle.dump(qLook,
+    #             open(path_name + "/pkl/qLook.pkl", "wb"))
+    SNP_IDs = [snp[0] for snp in SNPs]
+    SNP_len = [snp[1] for snp in SNPs]
+    SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
+                      np.mean(np.array(snp[2]), axis=0)[1]
+                      if np.mean(np.array(snp[2]), axis=0)[1] > 0
+                         and np.mean(np.array(snp[4]), axis=0)[1] > 0
+                      else np.mean(np.array(snp[4]), axis=0)[1]
+                      if np.mean(np.array(snp[4]), axis=0)[1] > 0
+                      else 0 for snp in SNPs]
+    SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
+    # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
+    #              /math.log(np.mean(SNPs[2], axis=0), 2)]
+    percents = []
+    for snp in range(len(SNPs)):
+        step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
+        percents.append(
+            (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
+             float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
+    pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
         # pickle.dump(pkl,
         #             open(path_name + "/pkl/plotzip.pkl", "wb"))
         # pkl = [row for row in pkl if row[2] >= 0]
