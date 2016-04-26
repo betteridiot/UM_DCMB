@@ -240,7 +240,7 @@ def main():
     global SNPs
     parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
     parser.add_argument('-d', action='store', dest='dir', help='root directory of interest',
-                        default='/home/mdsherm/Project/SNuPer_results/')
+                        default='/home/mdsherm/Project/SNuPer_results')
     parser.add_argument('--rna', action='store', dest='rna', type=float,
                         help='threshold for %% of RNA-seq FPKM', default=.5)
     parser.add_argument('--ribo', action='store', dest='ribo', type=float,
