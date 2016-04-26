@@ -245,6 +245,9 @@ def main():
                         help='threshold for %% of RNA-seq FPKM', default=.5)
     parser.add_argument('--ribo', action='store', dest='ribo', type=float,
                         help='threshold for %% of ribosomal profiling FPKM', default=.2)
+    parser.add_argument('-t', action='store', dest='top', type=int,
+                        help='The number of top results based on log2 ratio of'
+                             'homozygous alt vs homozygous ref', default=1000)
     args = parser.parse_args()
     path_name = args.dir
     # os.chdir(path_name)
@@ -309,7 +312,7 @@ def main():
              float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
     pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
     top = sorted(pkl, key=itemgetter(2))
-    top = top[:1000]
+    top = top[:args.top]
         # pickle.dump(pkl,
         #             open(path_name + "/pkl/plotzip.pkl", "wb"))
         # pkl = [row for row in pkl if row[2] >= 0]
