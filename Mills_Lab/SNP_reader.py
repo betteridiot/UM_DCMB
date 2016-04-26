@@ -313,6 +313,7 @@ def main():
     pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
     pickle.dump(pkl, open(path_name + "/pkl/plotzip.pkl", "wb"))
     top = sorted(pkl, key=itemgetter(2))[:args.top]
+    pickle.dump(top, open(path_name + "/pkl/top_%d.pkl" % args.top, "wb"))
     # top = top[:args.top]
         # pickle.dump(pkl,
         #             open(path_name + "/pkl/plotzip.pkl", "wb"))
@@ -331,33 +332,34 @@ def main():
     #     #     SNP_len.append(row[1])
     #     #     SNP_ratio.append(row[2])
     #     #     percents.append(row[3])
-    SNP_len = [length[1] for length in top]
-    sizes = (SNP_len / np.mean(SNP_len)) * 10
-    annotes = [snp_IDs[0] for snp_IDs in top]
-    colors = [snp_ratio[2] for snp_ratio in top]
-    percents = [p100[3] for p100 in top]
-    print(min(colors), max(colors))
-    x = [snp[0] for snp in percents]
-    y = [snp[1] for snp in percents]
-
-    # Plots the points above, and can be used to tie in individual SNP IDs
-    fig, ax = plt.subplots()
-    a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
-               vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
-    # cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
-    fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
-                 anchor=(0.0, 0.0), pad=0.01, drawedges=False,
-                 label='log2(alt/ref)')
-    # ax.set_title("Chr22")
-    ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
-    ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.set_aspect('equal')
-    ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
-    af = AnnoteFinder(x, y, annotes, ax=ax)
-    fig.canvas.mpl_connect('button_press_event', af)
-    plt.show()
+    # TODO uncomment from here
+    # SNP_len = [length[1] for length in top]
+    # sizes = (SNP_len / np.mean(SNP_len)) * 10
+    # annotes = [snp_IDs[0] for snp_IDs in top]
+    # colors = [snp_ratio[2] for snp_ratio in top]
+    # percents = [p100[3] for p100 in top]
+    # print(min(colors), max(colors))
+    # x = [snp[0] for snp in percents]
+    # y = [snp[1] for snp in percents]
+    #
+    # # Plots the points above, and can be used to tie in individual SNP IDs
+    # fig, ax = plt.subplots()
+    # a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
+    #            vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
+    # # cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
+    # fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
+    #              anchor=(0.0, 0.0), pad=0.01, drawedges=False,
+    #              label='log2(alt/ref)')
+    # # ax.set_title("Chr22")
+    # ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
+    # ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
+    # ax.set_xlim(0, 1)
+    # ax.set_ylim(0, 1)
+    # ax.set_aspect('equal')
+    # ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
+    # af = AnnoteFinder(x, y, annotes, ax=ax)
+    # fig.canvas.mpl_connect('button_press_event', af)
+    # plt.show()
 
 
 if __name__ == "__main__":
