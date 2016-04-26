@@ -247,7 +247,6 @@ def main():
     os.chdir(path_name)
     rna_thresh = args.rna
     ribo_thresh = args.ribo
-    # figuring out git crlf
     # if not os.path.isdir(path_name + '/pkl'):
     #     os.mkdir(path_name + '/pkl')
     # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
