@@ -312,9 +312,9 @@ def main():
         print("Exiting")
     elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
             top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
-            SNPs = pickle.load(open(path_name + '/pkl/SNPs.pkl' % args.top))
-            qLook = pickle.load(open(path_name + '/pkl/qlook.pkl' % args.top))
-            sampleGroup = pickle.load(open(path_name + '/pkl/SG.pkl' % args.top))
+            SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
+            sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
+            qLook = pickle.load(open(path_name + "/pkl/qLook.pkl", "rb"))
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0] for snp_IDs in top]
@@ -328,11 +328,14 @@ def main():
             fig, ax = plt.subplots()
             a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
                        vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
-            # cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
             fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
                          anchor=(0.0, 0.0), pad=0.01, drawedges=False,
                          label='log2(alt/ref)')
-            # ax.set_title("Chr22")
+            if "chr" not in path_name:
+                title = "Whole Genome"
+            else:
+                title = path_name.split('results/')[1]
+            ax.set_title(title)
             ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
             ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
             ax.set_xlim(0, 1)
