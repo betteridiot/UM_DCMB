@@ -308,7 +308,7 @@ def main():
                  float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
         pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
         pickle.dump(pkl, open(path_name + "/pkl/plotzip.pkl", "wb"))
-        top = sorted(pkl, key=itemgetter(2))[:args.top]
+        top = sorted(pkl, key=itemgetter(2), reverse=True)[:args.top]
         pickle.dump(top, open(path_name + "/pkl/top_%d.pkl" % args.top, "wb"))
     elif args.plot and not os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
         print("No precompiled list present!")
