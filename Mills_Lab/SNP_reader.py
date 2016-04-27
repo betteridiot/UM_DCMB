@@ -1,27 +1,106 @@
 #!/usr/bin/env python
-
 from __future__ import print_function, division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from shutil import rmtree as rm
+# import matplotlib.cm as cm
 import glob
+import pickle
 import math
-import random
-import string
+import numpy as np
+import os
+import sys
 import csv
+import fnmatch
+import argparse
+from operator import itemgetter
 
-path_name = '/home/mdsherm/Project/SNuPer_results/pythonTest/100ktest/'
-snp_files = glob.glob(path_name+"*.snp")
+"""If getting unable to connect, exit status -1:
+go to Run config and set DISPLAY to either 14 or 10 if running debug mode.
+Furthermore, you need to be SSH in MobaXterm at the same time. Otherwise, this
+script works from from the command line.
+"""
+
+def snp_set(lst):
+    """Makes a set list of SNPs that % of RNA & ribosome FPKM
+    is greater than 5. As it is a set, it only has unique entries
+    for each SNP, and therefore allows for control of duplicate
+    SNPs later.
+
+    Args:
+        lst (list): list of metadata files from given pathname
+
+    Returns:
+        setter (set): a set of unique SNPs that meet thresholds
+    """
+    setter = set()
+    for meta in lst:
+        for row in csv.reader(open(meta, 'rb'), delimiter='\t'):
+            if row[0].startswith("#"):
+                continue
+            elif all((row[5], row[6])) >= 0.5:
+                setter.add(row[0])
+            else:
+                continue
+    print("{} unique SNPs".format(len(setter)))
+    return setter
+
+
+def meta_catcher(ROOT, pattern):
+    """Collects the paths to all metadata files created from
+    ORFSNuPer.py
+
+    Args:
+        ROOT (str): root directory to walk through
+        pattern (str): how selection of files are filtered
+
+    Returns:
+        metas (list): list of metadata files and their paths
+    """
+    metas = []
+    for root, sub, files in os.walk(ROOT):
+        metadata = fnmatch.filter(files, pattern)
+        metas.extend(os.path.join(root, f) for f in metadata)
+    return metas
+
+
+def file_globber(pathname, setList):
+    """Walks through path to find files with prefixes present
+    in the snp set list created by snp_set()
+
+    Args:
+        pathname (str): root directory to walk through
+        setList (set): set of SNPs that meet basic criteria
+
+    Returns:
+        snp_files (list): a list of SNP files and their paths
+    """
+    snp_files = []
+    for dirs, _, files in os.walk(pathname):
+        if "SNPs" in dirs:
+            snp_files.extend(['{}/{}'.format(dirs, f) for f in files if f.rpartition(':')[0] in setList])
+    print('{} SNP files to be processed'.format(len(snp_files)))
+    return snp_files
 
 
 class CommentedFile:
+
     def __init__(self, f, commentstring="#"):
         self.f = f
         self.commentstring = commentstring
+        self.length = None
+        self.item = 0
+
     def next(self):
         line = self.f.next()
+        if line.startswith("##ID"):
+            line = self.f.next()
+        if line.startswith("##"):
+            self.length = int(line.split()[4])-int(line.split()[3])
         while line.startswith(self.commentstring):
             line = self.f.next()
         return line
+
     def __iter__(self):
         return self
 
@@ -37,8 +116,7 @@ class AnnoteFinder(object):
     af = AnnoteFinder(xdata, ydata, annotes)
     connect('button_press_event', af)
     """
-
-    def __init__(self, xdata, ydata, annotes, ax=None, xtol=None, ytol=None):
+    def __init__(self, xdata, ydata, annotes, ax=None, xtol=5, ytol=5):
         self.data = list(zip(xdata, ydata, annotes))
         if xtol is None:
             xtol = ((max(xdata) - min(xdata))/float(len(xdata)))/2
@@ -57,12 +135,11 @@ class AnnoteFinder(object):
         """
         return the distance between two points
         """
-        return(math.sqrt((x1 - x2)**2 + (y1 - y2)**2))
+        return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
     def __call__(self, event):
 
         if event.inaxes:
-
             clickX = event.xdata
             clickY = event.ydata
             if (self.ax is None) or (self.ax is event.inaxes):
@@ -81,6 +158,51 @@ class AnnoteFinder(object):
                     for l in self.links:
                         l.drawSpecificAnnote(annote)
 
+    def sub_boxplot(self, string):
+        global qLook
+        global sampleGroup
+        global SNPs
+        idx = qLook.get(string)
+        if idx is not None:
+            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
+                                 if '1|0' in row[1] or '0|1' in row[1]])
+            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
+                                  if '1|0' in row[1] or '0|1' in row[1]])
+            homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
+                                  if '1|1' in row[1]])
+            homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
+                                   if '1|1' in row[1]])
+            refrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
+                                 if '0|0' in row[1]])
+            refribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
+                                  if '0|0' in row[1]])
+            rna = [refrna, hetrna, homorna]
+            ribo = [refribo, hetribo, homoribo]
+            ticks = ["0|0 (n=%d)" % len(refrna),
+                     "0|1 (n=%d)" % len(hetrna),
+                     "1|1 (n=%d)" % len(homorna)]
+            xlab = "Genotypes"
+            ylab = "FPKM"
+            title = string
+            figrna = plt.figure()
+            axrna = figrna.add_subplot(111)
+            axrna.boxplot(rna, labels=ticks)
+            axrna.set_title(title + ": RNA-seq (N=%d)"
+                            % sum((len(hetrna), len(homorna), len(refrna))))
+            axrna.set_ylabel(ylab)
+            axrna.set_xlabel(xlab)
+            figrna.show()
+            figribo = plt.figure()
+            axribo = figribo.add_subplot(111)
+            axribo.boxplot(ribo, labels=ticks)
+            axribo.set_title(title + ": Ribosome Profiling (N=%d)"
+                            % sum((len(hetrna), len(homorna), len(refrna)))
+                             + '\n' + 'log2[alt/ref] = %f'
+                             % np.log2(np.mean(homoribo)/np.mean(refribo)))
+            axribo.set_ylabel(ylab)
+            axribo.set_xlabel(xlab)
+            figribo.show()
+
     def drawAnnote(self, ax, x, y, annote):
         """
         Draw the annotation on the plot
@@ -91,9 +213,10 @@ class AnnoteFinder(object):
                 m.set_visible(not m.get_visible())
             self.ax.figure.canvas.draw_idle()
         else:
-            t = ax.text(x, y, " - %s" % (annote),)
+            t = ax.text(x, y, " - %s" % annote)
             m = ax.scatter([x], [y], marker='d', c='r', zorder=100)
             self.drawnAnnotations[(x, y)] = (t, m)
+            self.sub_boxplot(annote)
             self.ax.figure.canvas.draw_idle()
 
     def drawSpecificAnnote(self, annote):
@@ -102,41 +225,133 @@ class AnnoteFinder(object):
             self.drawAnnote(self.ax, x, y, a)
 
 
-sampleGroup = [(file.replace(path_name,"").replace(".snp",""), [row for row in csv.reader(CommentedFile(open(file, "rb"))
-                                                                       , delimiter='\t')]) for file in snp_files]
-
-
 def meta_list(LIST):
     try:
-        output = (sum(1 for rna in LIST if rna[0] > 0.0)/len(LIST), sum(1 for ribo in LIST if ribo[1] > 5)/len(LIST))
+        output = (sum(1 for rna in LIST if rna[0] > 0.0)/len(LIST),
+                  sum(1 for ribo in LIST if ribo[1] > 0)/len(LIST))
         return output
     except ZeroDivisionError:
         return 0
 
 
-SNP_IDs = [snp[0] for snp in sampleGroup]
-percents = []
-for snp in sampleGroup:
-    step = [(float(samples[2]), float(samples[3])) for samples in snp[1]]
-    # step_ref = [(float(samples[2]), float(samples[3])) for samples in snp[1] if samples[1] == "0|0"]
-    # step_alt = [(float(samples[2]), float(samples[3])) for samples in snp[1] if samples[1] == "1|1"]
-    # step_het = [(float(samples[2]), float(samples[3])) for samples in snp[1] if samples[1] == ("0|1" or "1|0")]
-    # percents.append((meta_list(step_ref), meta_list(step_alt), meta_list(step_het)))
-    percents.append((sum(1 for rna in step if rna[0] > 0.0)/len(step), sum(1 for ribo in step if ribo[1] > 5)/len(step)))
-SNP_list = zip(SNP_IDs, percents)
-# Gives me all SNPs that have %RNA-seq >.8 and %Ribo >.5
-axis = [(snp[1][0], snp[1][1]) for snp in SNP_list]
-annotes = [snp[0] for snp in SNP_list]
-x = [x[0] for x in axis]
-y = [y[1] for y in axis]
+def main():
+    global qLook
+    global sampleGroup
+    global SNPs
+    parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
+    parser.add_argument('-d', action='store', dest='dir', help='/path/to/root/dir',
+                        metavar="dir", default='/home/mdsherm/Project/SNuPer_results')
+    parser.add_argument('--rna', action='store', dest='rna', type=float, metavar="float",
+                        help='threshold for %% of RNA-seq FPKM', default=.5)
+    parser.add_argument('--ribo', action='store', dest='ribo', type=float, metavar="float",
+                        help='threshold for %% of ribosomal profiling FPKM', default=.2)
+    parser.add_argument('-t', action='store', dest='top', type=int,
+                        help='The number of top results based on log2 ratio of'
+                             'homozygous alt vs homozygous ref', default=1000)
+    parser.add_argument('--plot-only', action='store_true', dest='plot', default=False,
+                        help='Use only with pre-compiled lists. Uses the root directory as path')
+    args = parser.parse_args()
+    path_name = args.dir
+    # os.chdir(path_name)
+    rna_thresh = args.rna
+    ribo_thresh = args.ribo
+    # if not os.path.isdir(path_name + '/pkl'):
+    #     os.mkdir(path_name + '/pkl')
+    # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
+    if not args.plot:
+        set_list = snp_set(meta_catcher(path_name, 'metadata'))
+        snp_files = file_globber(path_name, set_list)
+        pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
+        sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
+            open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
+        sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
+                        snp[1][3:]) for snp in sampleGroup]
+        genos = []
+        for snp in sampleGroup:
+            ID = snp[0]
+            Lengths = snp[1]
+            ref = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "0|0" in sample[1]])
+            het = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "1|0" in sample[1] or "0|1" in sample[1]])
+            alt = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "1|1" in sample[1]])
+            raw = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2]])
+            try:
+                if np.mean(ref, axis=0)[1] < np.mean(
+                        het, axis=0)[1] < np.mean(alt, axis=0)[1]:
+                    genos.append([ID, Lengths, ref, het, alt, raw])
+                else:
+                    pass
+            except IndexError:
+                pass
 
-# Plots the points above, and can be used to tie in individual SNP IDs
-fig, ax = plt.subplots()
-ax.scatter(x,y, color='orange', s=50, linewidths=0.1, edgecolors='black')
-ax.set_title("Chr22 100k Test data")
-ax.set_xlabel('%RNA-seq > 0.0')
-ax.set_ylabel('%Ribosome Profiling > 0.0')
-af =  AnnoteFinder(x,y, annotes, ax=ax)
-fig.canvas.mpl_connect('button_press_event', af)
-plt.show()
+        SNPs = genos[:]
+        qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
+        # pickle.dump(genos,
+        #             open(path_name + "/pkl/genos.pkl", "wb"))
+        # pickle.dump(sampleGroup,
+        #             open(path_name + "/pkl/SG.pkl", "wb"))
+        # pickle.dump(qLook,
+        #             open(path_name + "/pkl/qLook.pkl", "wb"))
+        SNP_IDs = [snp[0] for snp in SNPs]
+        SNP_len = [snp[1] for snp in SNPs]
+        SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
+                          np.mean(np.array(snp[2]), axis=0)[1]
+                          if np.mean(np.array(snp[2]), axis=0)[1] > 0
+                             and np.mean(np.array(snp[4]), axis=0)[1] > 0
+                          else np.mean(np.array(snp[4]), axis=0)[1]
+                          if np.mean(np.array(snp[4]), axis=0)[1] > 0
+                          else 0 for snp in SNPs]
+        SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
+        # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
+        #              /math.log(np.mean(SNPs[2], axis=0), 2)]
+        percents = []
+        for snp in range(len(SNPs)):
+            step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
+            percents.append(
+                (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
+                 float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
+        pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
+        pickle.dump(pkl, open(path_name + "/pkl/plotzip.pkl", "wb"))
+        top = sorted(pkl, key=itemgetter(2))[:args.top]
+        pickle.dump(top, open(path_name + "/pkl/top_%d.pkl" % args.top, "wb"))
+    elif args.plot and not os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
+        print("No precompiled list present!")
+        print("Exiting")
+    elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
+            top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
+            SNP_len = [length[1] for length in top]
+            sizes = (SNP_len / np.mean(SNP_len)) * 10
+            annotes = [snp_IDs[0] for snp_IDs in top]
+            colors = [snp_ratio[2] for snp_ratio in top]
+            percents = [p100[3] for p100 in top]
+            print(min(colors), max(colors))
+            x = [snp[0] for snp in percents]
+            y = [snp[1] for snp in percents]
 
+            # Plots the points above, and can be used to tie in individual SNP IDs
+            fig, ax = plt.subplots()
+            a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
+                       vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
+            # cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
+            fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
+                         anchor=(0.0, 0.0), pad=0.01, drawedges=False,
+                         label='log2(alt/ref)')
+            # ax.set_title("Chr22")
+            ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
+            ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 1)
+            ax.set_aspect('equal')
+            ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
+            af = AnnoteFinder(x, y, annotes, ax=ax)
+            fig.canvas.mpl_connect('button_press_event', af)
+            plt.show()
+    else:
+        print("Unforeseen error")
+        print("Exiting")
+
+if __name__ == "__main__":
+    main()

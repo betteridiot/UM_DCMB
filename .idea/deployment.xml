@@ -9,10 +9,10 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="bcs2">
+      <paths name="Copy of project-level server 'Axiom'">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/Project/UM_DCMB" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

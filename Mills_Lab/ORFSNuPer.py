@@ -66,8 +66,8 @@ threshold = args.threshold
 # ARGPARSE END
 
 # CODONS START
-negStops = ['TTA', 'CTA', 'TCA']
-plusStops = ['ATT', 'ATC', 'ACT']
+negStops = ('TTA', 'CTA', 'TCA')
+plusStops = ('ATT', 'ATC', 'ACT')
 # if args.alternative is True:
 #     plusStart, negStart = ('TAC', 'CAC'), ('CAT', 'CAC')
 # else:
