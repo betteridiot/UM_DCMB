@@ -17,7 +17,7 @@ Furthermore, you need to be SSH in MobaXterm at the same time. Otherwise, this
 script works from from the command line.
 """
 
-def snp_set(lst):
+def snp_set(lst, threshold):
     """Makes a set list of SNPs that % of RNA & ribosome FPKM
     is greater than 5. As it is a set, it only has unique entries
     for each SNP, and therefore allows for control of duplicate
@@ -25,6 +25,7 @@ def snp_set(lst):
 
     Args:
         lst (list): list of metadata files from given pathname
+        threshold (float): threshold for metadata cutoff
 
     Returns:
         setter (set): a set of unique SNPs that meet thresholds
@@ -34,7 +35,7 @@ def snp_set(lst):
         for row in csv.reader(open(meta, 'rb'), delimiter='\t'):
             if row[0].startswith("#"):
                 continue
-            elif all((row[5], row[6])) >= 0.5:
+            elif all((row[5], row[6])) >= threshold:
                 setter.add(row[0])
             else:
                 continue
@@ -237,21 +238,23 @@ def main():
     parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
     parser.add_argument('-d', action='store', dest='dir', help='/path/to/root/dir',
                         metavar="dir", default='/home/mdsherm/Project/SNuPer_results')
-    parser.add_argument('--rna', action='store', dest='rna', type=float, metavar="float",
+    parser.add_argument('--rna', action='store', dest='rna', type=float, metavar="%%",
                         help='threshold for %% of RNA-seq FPKM', default=.5)
-    parser.add_argument('--ribo', action='store', dest='ribo', type=float, metavar="float",
+    parser.add_argument('--ribo', action='store', dest='ribo', type=float, metavar="%%",
                         help='threshold for %% of ribosomal profiling FPKM', default=.2)
-    parser.add_argument('-t', action='store', dest='top', type=int,
+    parser.add_argument('-t', action='store', dest='top', type=int, metavar='int',
                         help='The number of top results based on log2 ratio of'
                              'homozygous alt vs homozygous ref', default=1000)
     parser.add_argument('--plot-only', action='store_true', dest='plot', default=False,
                         help='Use only with pre-compiled lists. Uses the root directory as path')
+    parser.add_argument('-a', action='store', dest='meta', type='float', metavar="%%",
+                        help="Threshold for metadata cutoff", default=0.5)
     args = parser.parse_args()
     path_name = args.dir
     rna_thresh = args.rna
     ribo_thresh = args.ribo
     if not args.plot:
-        set_list = snp_set(meta_catcher(path_name, 'metadata'))
+        set_list = snp_set(meta_catcher(path_name, 'metadata'), args.meta)
         snp_files = file_globber(path_name, set_list)
         pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
         sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
@@ -320,7 +323,8 @@ def main():
             annotes = [snp_IDs[0] for snp_IDs in top]
             colors = [snp_ratio[2] for snp_ratio in top]
             percents = [p100[3] for p100 in top]
-            print('{} minimum log2 ratio, {} maximum log2 ratio'.format(min(colors), max(colors)))
+            print('{} minimum log2 ratio, {} maximum log2 ratio'.format(round(
+                min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
 
@@ -336,8 +340,8 @@ def main():
             else:
                 title = path_name.split('results/')[1]
             ax.set_title(title)
-            ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
-            ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
+            ax.set_xlabel('%%RNA-seq FPKM > 5 at %f cutoff' % rna_thresh)
+            ax.set_ylabel('%%Ribosome Profiling FPKM > 5 at %f cutoff' % ribo_thresh)
             ax.set_xlim(0, 1)
             ax.set_ylim(0, 1)
             ax.set_aspect('equal')
