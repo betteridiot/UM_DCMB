@@ -251,8 +251,8 @@ def main():
                         help="Threshold for metadata cutoff", default=0.5)
     args = parser.parse_args()
     path_name = args.dir
-    rna_thresh = args.rna
-    ribo_thresh = args.ribo
+    rna_thresh = round(args.rna,1)
+    ribo_thresh = round(args.ribo,1)
     if not args.plot:
         set_list = snp_set(meta_catcher(path_name, 'metadata'), args.meta)
         snp_files = file_globber(path_name, set_list)
@@ -320,7 +320,7 @@ def main():
             qLook = pickle.load(open(path_name + "/pkl/qLook.pkl", "rb"))
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
-            annotes = [snp_IDs[0] for snp_IDs in top]
+            annotes = [snp_IDs[0].split(".snp")[0] for snp_IDs in top]
             colors = [snp_ratio[2] for snp_ratio in top]
             percents = [p100[3] for p100 in top]
             print('{} minimum log2 ratio, {} maximum log2 ratio'.format(round(
@@ -340,12 +340,12 @@ def main():
             else:
                 title = path_name.split('results/')[1]
             ax.set_title(title)
-            ax.set_xlabel('%%RNA-seq FPKM > 5 at %f cutoff' % rna_thresh)
-            ax.set_ylabel('%%Ribosome Profiling FPKM > 5 at %f cutoff' % ribo_thresh)
+            ax.set_xlabel('%%RNA-seq FPKM > %f cutoff' % rna_thresh)
+            ax.set_ylabel('%%Ribosome Profiling FPKM > %f cutoff' % ribo_thresh)
             ax.set_xlim(0, 1)
             ax.set_ylim(0, 1)
             ax.set_aspect('equal')
-            ax.text(0, 1.1, "% above threshold of % samples with total FPKM > 5 from SNP")
+            ax.text(0, 1.1, "Selection of SNPs based on total samples above > 5 FPKM")
             ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
             af = AnnoteFinder(x, y, annotes, ax=ax)
             fig.canvas.mpl_connect('button_press_event', af)
