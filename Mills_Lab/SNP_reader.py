@@ -2,14 +2,10 @@
 from __future__ import print_function, division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from shutil import rmtree as rm
-# import matplotlib.cm as cm
-import glob
 import pickle
 import math
 import numpy as np
 import os
-import sys
 import csv
 import fnmatch
 import argparse
@@ -252,12 +248,8 @@ def main():
                         help='Use only with pre-compiled lists. Uses the root directory as path')
     args = parser.parse_args()
     path_name = args.dir
-    # os.chdir(path_name)
     rna_thresh = args.rna
     ribo_thresh = args.ribo
-    # if not os.path.isdir(path_name + '/pkl'):
-    #     os.mkdir(path_name + '/pkl')
-    # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
     if not args.plot:
         set_list = snp_set(meta_catcher(path_name, 'metadata'))
         snp_files = file_globber(path_name, set_list)
@@ -289,12 +281,12 @@ def main():
 
         SNPs = genos[:]
         qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
-        # pickle.dump(genos,
-        #             open(path_name + "/pkl/genos.pkl", "wb"))
-        # pickle.dump(sampleGroup,
-        #             open(path_name + "/pkl/SG.pkl", "wb"))
-        # pickle.dump(qLook,
-        #             open(path_name + "/pkl/qLook.pkl", "wb"))
+        pickle.dump(SNPs,
+                    open(path_name + "/pkl/SNPs.pkl", "wb"))
+        pickle.dump(sampleGroup,
+                    open(path_name + "/pkl/SG.pkl", "wb"))
+        pickle.dump(qLook,
+                    open(path_name + "/pkl/qLook.pkl", "wb"))
         SNP_IDs = [snp[0] for snp in SNPs]
         SNP_len = [snp[1] for snp in SNPs]
         SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
@@ -305,8 +297,6 @@ def main():
                           if np.mean(np.array(snp[4]), axis=0)[1] > 0
                           else 0 for snp in SNPs]
         SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
-        # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
-        #              /math.log(np.mean(SNPs[2], axis=0), 2)]
         percents = []
         for snp in range(len(SNPs)):
             step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
@@ -322,6 +312,9 @@ def main():
         print("Exiting")
     elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
             top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
+            SNPs = pickle.load(open(path_name + '/pkl/SNPs.pkl' % args.top))
+            qLook = pickle.load(open(path_name + '/pkl/qlook.pkl' % args.top))
+            sampleGroup = pickle.load(open(path_name + '/pkl/SG.pkl' % args.top))
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0] for snp_IDs in top]
