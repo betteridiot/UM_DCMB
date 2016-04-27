@@ -320,7 +320,7 @@ def main():
             annotes = [snp_IDs[0] for snp_IDs in top]
             colors = [snp_ratio[2] for snp_ratio in top]
             percents = [p100[3] for p100 in top]
-            print(min(colors), max(colors))
+            print('{} minimum log2 ratio, {} maximum log2 ratio'.format(min(colors), max(colors)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
 
