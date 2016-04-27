@@ -248,7 +248,7 @@ def main():
     parser.add_argument('-t', action='store', dest='top', type=int,
                         help='The number of top results based on log2 ratio of'
                              'homozygous alt vs homozygous ref', default=1000)
-    parser.add_argument('--plot-only', action='store_true', dest='plot', type=bool, default=False,
+    parser.add_argument('--plot-only', action='store_true', dest='plot', default=False,
                         help='Use only with pre-compiled lists. Uses the root directory as path')
     args = parser.parse_args()
     path_name = args.dir
