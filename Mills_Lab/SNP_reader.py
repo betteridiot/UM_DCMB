@@ -247,7 +247,7 @@ def main():
                              'homozygous alt vs homozygous ref', default=1000)
     parser.add_argument('--plot-only', action='store_true', dest='plot', default=False,
                         help='Use only with pre-compiled lists. Uses the root directory as path')
-    parser.add_argument('-a', action='store', dest='meta', type='float', metavar="%%",
+    parser.add_argument('-a', action='store', dest='meta', type=float, metavar="%%",
                         help="Threshold for metadata cutoff", default=0.5)
     args = parser.parse_args()
     path_name = args.dir
