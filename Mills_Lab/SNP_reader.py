@@ -345,7 +345,7 @@ def main():
             ax.set_xlim(0, 1)
             ax.set_ylim(0, 1)
             ax.set_aspect('equal')
-            ax.text(0, 1.1, '%% of samples above threshold from SNP that has FPKM > 5')
+            ax.text(0, 1.1, "% above threshold of % samples with total FPKM > 5 from SNP")
             ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
             af = AnnoteFinder(x, y, annotes, ax=ax)
             fig.canvas.mpl_connect('button_press_event', af)
