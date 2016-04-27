@@ -248,6 +248,8 @@ def main():
     parser.add_argument('-t', action='store', dest='top', type=int,
                         help='The number of top results based on log2 ratio of'
                              'homozygous alt vs homozygous ref', default=1000)
+    parser.add_argument('--plot-only', action='store_true', dest='plot', type=bool, default=False,
+                        help='Use only with pre-compiled lists. Uses the root directory as path')
     args = parser.parse_args()
     path_name = args.dir
     # os.chdir(path_name)
@@ -256,111 +258,100 @@ def main():
     # if not os.path.isdir(path_name + '/pkl'):
     #     os.mkdir(path_name + '/pkl')
     # if not os.path.isfile(path_name + '/pkl/plotzip.pkl'):
-    set_list = snp_set(meta_catcher(path_name, 'metadata'))
-    snp_files = file_globber(path_name, set_list)
-    pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
-    sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
-        open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
-    sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
-                    snp[1][3:]) for snp in sampleGroup]
-    genos = []
-    for snp in sampleGroup:
-        ID = snp[0]
-        Lengths = snp[1]
-        ref = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2] if "0|0" in sample[1]])
-        het = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2] if "1|0" in sample[1] or "0|1" in sample[1]])
-        alt = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2] if "1|1" in sample[1]])
-        raw = np.array([(float(sample[2]), float(sample[3])) for sample
-               in snp[2]])
-        try:
-            if np.mean(ref, axis=0)[1] < np.mean(
-                    het, axis=0)[1] < np.mean(alt, axis=0)[1]:
-                genos.append([ID, Lengths, ref, het, alt, raw])
-            else:
+    if not args.plot:
+        set_list = snp_set(meta_catcher(path_name, 'metadata'))
+        snp_files = file_globber(path_name, set_list)
+        pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
+        sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
+            open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
+        sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
+                        snp[1][3:]) for snp in sampleGroup]
+        genos = []
+        for snp in sampleGroup:
+            ID = snp[0]
+            Lengths = snp[1]
+            ref = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "0|0" in sample[1]])
+            het = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "1|0" in sample[1] or "0|1" in sample[1]])
+            alt = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2] if "1|1" in sample[1]])
+            raw = np.array([(float(sample[2]), float(sample[3])) for sample
+                   in snp[2]])
+            try:
+                if np.mean(ref, axis=0)[1] < np.mean(
+                        het, axis=0)[1] < np.mean(alt, axis=0)[1]:
+                    genos.append([ID, Lengths, ref, het, alt, raw])
+                else:
+                    pass
+            except IndexError:
                 pass
-        except IndexError:
-            pass
 
-    SNPs = genos[:]
-    qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
-    # pickle.dump(genos,
-    #             open(path_name + "/pkl/genos.pkl", "wb"))
-    # pickle.dump(sampleGroup,
-    #             open(path_name + "/pkl/SG.pkl", "wb"))
-    # pickle.dump(qLook,
-    #             open(path_name + "/pkl/qLook.pkl", "wb"))
-    SNP_IDs = [snp[0] for snp in SNPs]
-    SNP_len = [snp[1] for snp in SNPs]
-    SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
-                      np.mean(np.array(snp[2]), axis=0)[1]
-                      if np.mean(np.array(snp[2]), axis=0)[1] > 0
-                         and np.mean(np.array(snp[4]), axis=0)[1] > 0
-                      else np.mean(np.array(snp[4]), axis=0)[1]
-                      if np.mean(np.array(snp[4]), axis=0)[1] > 0
-                      else 0 for snp in SNPs]
-    SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
-    # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
-    #              /math.log(np.mean(SNPs[2], axis=0), 2)]
-    percents = []
-    for snp in range(len(SNPs)):
-        step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
-        percents.append(
-            (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
-             float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
-    pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
-    pickle.dump(pkl, open(path_name + "/pkl/plotzip.pkl", "wb"))
-    top = sorted(pkl, key=itemgetter(2))[:args.top]
-    pickle.dump(top, open(path_name + "/pkl/top_%d.pkl" % args.top, "wb"))
-    # top = top[:args.top]
-        # pickle.dump(pkl,
-        #             open(path_name + "/pkl/plotzip.pkl", "wb"))
-        # pkl = [row for row in pkl if row[2] >= 0]
-    # else:
-    #     pkl = pickle.load(
-    #         open(path_name + "/pkl/plotzip.pkl", "rb"))
-    #     sampleGroup = pickle.load(
-    #         open(path_name + "/pkl/SG.pkl", "rb"))
-    #     qLook = pickle.load(
-    #         open(path_name + "/pkl/qLook.pkl", "rb"))
-    #     pkl = [row for row in pkl if row[2] >= 0]
-    #     # SNP_IDs, SNP_len, SNP_ratio, percents = [], [], [], []
-    #     # for row in pkl:
-    #     #     SNP_IDs.append(row[0])
-    #     #     SNP_len.append(row[1])
-    #     #     SNP_ratio.append(row[2])
-    #     #     percents.append(row[3])
-    # TODO uncomment from here
-    # SNP_len = [length[1] for length in top]
-    # sizes = (SNP_len / np.mean(SNP_len)) * 10
-    # annotes = [snp_IDs[0] for snp_IDs in top]
-    # colors = [snp_ratio[2] for snp_ratio in top]
-    # percents = [p100[3] for p100 in top]
-    # print(min(colors), max(colors))
-    # x = [snp[0] for snp in percents]
-    # y = [snp[1] for snp in percents]
-    #
-    # # Plots the points above, and can be used to tie in individual SNP IDs
-    # fig, ax = plt.subplots()
-    # a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
-    #            vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
-    # # cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
-    # fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
-    #              anchor=(0.0, 0.0), pad=0.01, drawedges=False,
-    #              label='log2(alt/ref)')
-    # # ax.set_title("Chr22")
-    # ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
-    # ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
-    # ax.set_xlim(0, 1)
-    # ax.set_ylim(0, 1)
-    # ax.set_aspect('equal')
-    # ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
-    # af = AnnoteFinder(x, y, annotes, ax=ax)
-    # fig.canvas.mpl_connect('button_press_event', af)
-    # plt.show()
+        SNPs = genos[:]
+        qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
+        # pickle.dump(genos,
+        #             open(path_name + "/pkl/genos.pkl", "wb"))
+        # pickle.dump(sampleGroup,
+        #             open(path_name + "/pkl/SG.pkl", "wb"))
+        # pickle.dump(qLook,
+        #             open(path_name + "/pkl/qLook.pkl", "wb"))
+        SNP_IDs = [snp[0] for snp in SNPs]
+        SNP_len = [snp[1] for snp in SNPs]
+        SNP_ratio_step = [np.mean(np.array(snp[4]), axis=0)[1] /
+                          np.mean(np.array(snp[2]), axis=0)[1]
+                          if np.mean(np.array(snp[2]), axis=0)[1] > 0
+                             and np.mean(np.array(snp[4]), axis=0)[1] > 0
+                          else np.mean(np.array(snp[4]), axis=0)[1]
+                          if np.mean(np.array(snp[4]), axis=0)[1] > 0
+                          else 0 for snp in SNPs]
+        SNP_ratio = [np.log2(step) if step > 0 else 0 for step in SNP_ratio_step]
+        # SNP_ratio = [math.log(np.mean(SNPs[4], axis=0), 2)
+        #              /math.log(np.mean(SNPs[2], axis=0), 2)]
+        percents = []
+        for snp in range(len(SNPs)):
+            step = [(sample[0], sample[1]) for sample in SNPs[snp][5]]
+            percents.append(
+                (float(sum(1 for rna in step if rna[0] > rna_thresh)/float(len(step))),
+                 float(sum(1 for ribo in step if ribo[1] > ribo_thresh)/float(len(step)))))
+        pkl = zip(SNP_IDs, SNP_len, SNP_ratio, percents)
+        pickle.dump(pkl, open(path_name + "/pkl/plotzip.pkl", "wb"))
+        top = sorted(pkl, key=itemgetter(2))[:args.top]
+        pickle.dump(top, open(path_name + "/pkl/top_%d.pkl" % args.top, "wb"))
+    elif args.plot and not os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
+        print("No precompiled list present!")
+        print("Exiting")
+    elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
+            top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
+            SNP_len = [length[1] for length in top]
+            sizes = (SNP_len / np.mean(SNP_len)) * 10
+            annotes = [snp_IDs[0] for snp_IDs in top]
+            colors = [snp_ratio[2] for snp_ratio in top]
+            percents = [p100[3] for p100 in top]
+            print(min(colors), max(colors))
+            x = [snp[0] for snp in percents]
+            y = [snp[1] for snp in percents]
 
+            # Plots the points above, and can be used to tie in individual SNP IDs
+            fig, ax = plt.subplots()
+            a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
+                       vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
+            # cbaxes = fig.add_axes([0.0, 0.0, 0.05, 0.2])
+            fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
+                         anchor=(0.0, 0.0), pad=0.01, drawedges=False,
+                         label='log2(alt/ref)')
+            # ax.set_title("Chr22")
+            ax.set_xlabel('%%RNA-seq > %f' % rna_thresh)
+            ax.set_ylabel('%%Ribosome Profiling > %f' % ribo_thresh)
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 1)
+            ax.set_aspect('equal')
+            ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3", alpha=0.35)
+            af = AnnoteFinder(x, y, annotes, ax=ax)
+            fig.canvas.mpl_connect('button_press_event', af)
+            plt.show()
+    else:
+        print("Unforeseen error")
+        print("Exiting")
 
 if __name__ == "__main__":
     main()
