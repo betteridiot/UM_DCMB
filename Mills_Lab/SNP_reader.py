@@ -321,7 +321,7 @@ def main():
             top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
             # sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
-            qLook = {entry[0].split(".snp"): i for (i, entry) in enumerate(SNPs)}
+            qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0].split(".snp")[0] for snp_IDs in top]
