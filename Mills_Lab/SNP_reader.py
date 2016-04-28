@@ -190,7 +190,7 @@ class AnnoteFinder(object):
                              fontsize=10)
             axribo.set_ylabel(ylab, fontsize=10)
             axribo.set_xlabel(xlab, fontsize=10)
-            figmix.tight_layout()
+            plt.tight_layout()
             # figmix.show()
             # figrna = plt.figure()
             # axrna = figrna.add_subplot(111)
