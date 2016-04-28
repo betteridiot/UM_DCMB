@@ -287,7 +287,7 @@ def main():
                 pass
 
         # SNPs = genos[:]
-        qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
+        qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(sampleGroup)}
         pickle.dump(SNPs,
                     open(path_name + "/pkl/SNPs.pkl", "wb"))
         pickle.dump(sampleGroup,
