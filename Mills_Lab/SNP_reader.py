@@ -334,7 +334,7 @@ def main():
                 min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
-            z = [.2 - (((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
+            z = [.2 * (((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
                              len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))/
                        len(SNPs[qLook.get(snp[0].split(".snp")[0])][5]))**2)**.5 for snp in top]
             # z = [.2 - ((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
