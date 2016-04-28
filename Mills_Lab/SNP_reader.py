@@ -333,7 +333,7 @@ def main():
                 min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
-            z = [(len(entry[2]) - len(entry[4])) / len(entry[5]) for entry in SNPs]
+            z = [10*((len(entry[2]) - len(entry[4])) / len(entry[5])) for entry in SNPs]
             z = [z.pop(i) for i in z_prune]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
