@@ -321,6 +321,7 @@ def main():
     elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
             # top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
             top = pickle.load(open(path_name + '/pkl/plotzip.pkl'))
+            top = [snp for snp in top if snp[2] > 0]
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
             # sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
             qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
