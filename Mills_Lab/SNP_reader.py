@@ -175,34 +175,28 @@ class AnnoteFinder(object):
             xlab = "Genotypes"
             ylab = "FPKM"
             title = string
-            # figmix, axmix = plt.subplots(1,2)
-            # axmix[0,0].boxplot(rna, labels=ticks, title=title + ": RNA-seq (N=%d)"
-            #                 % sum((len(hetrna), len(homorna), len(refrna))), ylab=ylab,
-            #                    xlab=xlab)
-            # axmix[0,1].boxplot(ribo, labels=ticks, title=title + ": Ribosome Profiling (N=%d)"
-            #                 % sum((len(hetrna), len(homorna), len(refrna))) + '\n' +
-            #                 'log2[alt/ref] = %f'
-            #                 % np.log2(np.mean(homoribo)/np.mean(refribo)), ylab=ylab,
-            #                    xlab=xlab)
-            # figmix.show()
-            figrna = plt.figure()
-            axrna = figrna.add_subplot(111)
-            axrna.boxplot(rna, labels=ticks)
-            axrna.set_title(title + ": RNA-seq (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna))))
-            axrna.set_ylabel(ylab)
-            axrna.set_xlabel(xlab)
-            figrna.show()
-            figribo = plt.figure()
-            axribo = figribo.add_subplot(111)
-            axribo.boxplot(ribo, labels=ticks)
-            axribo.set_title(title + ": Ribosome Profiling (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna)))
-                             + '\n' + 'log2[alt/ref] = %f'
-                             % np.log2(np.mean(homoribo)/np.mean(refribo)))
-            axribo.set_ylabel(ylab)
-            axribo.set_xlabel(xlab)
-            figribo.show()
+            figmix, (ax1, ax2) = plt.subplots(1,2)
+            ax1.boxplot(rna, labels=ticks) #, title=title + ": RNA-seq (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))), ylab=ylab, xlab=xlab
+            ax2.boxplot(ribo, labels=ticks) #, title=title + ": Ribosome Profiling (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))) + '\n' + 'log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo)), ylab=ylab, xlab=xlab
+            figmix.show()
+            # figrna = plt.figure()
+            # axrna = figrna.add_subplot(111)
+            # axrna.boxplot(rna, labels=ticks)
+            # axrna.set_title(title + ": RNA-seq (N=%d)"
+            #                 % sum((len(hetrna), len(homorna), len(refrna))))
+            # axrna.set_ylabel(ylab)
+            # axrna.set_xlabel(xlab)
+            # figrna.show()
+            # figribo = plt.figure()
+            # axribo = figribo.add_subplot(111)
+            # axribo.boxplot(ribo, labels=ticks)
+            # axribo.set_title(title + ": Ribosome Profiling (N=%d)"
+            #                 % sum((len(hetrna), len(homorna), len(refrna)))
+            #                  + '\n' + 'log2[alt/ref] = %f'
+            #                  % np.log2(np.mean(homoribo)/np.mean(refribo)))
+            # axribo.set_ylabel(ylab)
+            # axribo.set_xlabel(xlab)
+            # figribo.show()
 
     def drawAnnote(self, ax, x, y, annote):
         """
