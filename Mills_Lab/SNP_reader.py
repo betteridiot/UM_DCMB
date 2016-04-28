@@ -191,7 +191,7 @@ class AnnoteFinder(object):
             axribo.set_ylabel(ylab, fontsize=10)
             axribo.set_xlabel(xlab, fontsize=10)
             plt.tight_layout()
-            # plt.show()
+            plt.show()
             # figrna = plt.figure()
             # axrna = figrna.add_subplot(111)
             # axrna.boxplot(rna, labels=ticks)
