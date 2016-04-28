@@ -157,22 +157,16 @@ class AnnoteFinder(object):
 
     def sub_boxplot(self, string):
         global qLook
-        global sampleGroup
+        # global sampleGroup
         global SNPs
         idx = qLook.get(string)
         if idx is not None:
-            hetrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
-                                 if '1|0' in row[1] or '0|1' in row[1]])
-            hetribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
-                                  if '1|0' in row[1] or '0|1' in row[1]])
-            homorna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
-                                  if '1|1' in row[1]])
-            homoribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
-                                   if '1|1' in row[1]])
-            refrna = np.asarray([float(row[2]) for row in sampleGroup[idx][2]
-                                 if '0|0' in row[1]])
-            refribo = np.asarray([float(row[3]) for row in sampleGroup[idx][2]
-                                  if '0|0' in row[1]])
+            hetrna = np.asarray([sample[0] for sample in SNPs[idx][3]])
+            hetribo = np.asarray([sample[1] for sample in SNPs[idx][3]])
+            homorna = np.asarray([sample[0] for sample in SNPs[idx][4]])
+            homoribo = np.asarray([sample[1] for sample in SNPs[idx][4]])
+            refrna = np.asarray([sample[0] for sample in SNPs[idx][2]])
+            refribo = np.asarray([sample[1] for sample in SNPs[idx][2]])
             rna = [refrna, hetrna, homorna]
             ribo = [refribo, hetribo, homoribo]
             ticks = ["0|0 (n=%d)" % len(refrna),
@@ -316,8 +310,8 @@ def main():
     elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
             top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
-            sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
-            qLook = pickle.load(open(path_name + "/pkl/qLook.pkl", "rb"))
+            # sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
+            qLook = {entry[0]: i for (i, entry) in enumerate(SNPs)}
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0].split(".snp")[0] for snp_IDs in top]
