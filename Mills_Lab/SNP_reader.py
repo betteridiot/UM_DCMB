@@ -336,7 +336,7 @@ def main():
             # Plots the points above, and can be used to tie in individual SNP IDs
             fig, ax = plt.subplots()
             a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
-                       vmax=max(colors), s=z, linewidths=0.2, edgecolors='black', alpha=0.8)
+                       vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
             fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
                          anchor=(0.0, 0.0), pad=0.01, drawedges=False,
                          label='log2(alt/ref)')
