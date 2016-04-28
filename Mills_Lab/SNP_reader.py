@@ -10,6 +10,7 @@ import csv
 import fnmatch
 import argparse
 from operator import itemgetter
+from mpl_toolkits.mplot3d import Axes3D
 
 """If getting unable to connect, exit status -1:
 go to Run config and set DISPLAY to either 14 or 10 if running debug mode.
@@ -331,10 +332,12 @@ def main():
                 min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
+            z = [(((len(entry[2]) - len(entry[4])) / len(entry[5]))**2)**.5 for entry in SNPs]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
-            fig, ax = plt.subplots()
-            a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            a = ax.scatter(x, y, z, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
                        vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
             fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
                          anchor=(0.0, 0.0), pad=0.01, drawedges=False,
