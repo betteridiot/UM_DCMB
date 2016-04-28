@@ -335,8 +335,11 @@ def main():
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
             z = [1 * (len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
-                             len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]))/
-                       len(SNPs[qLook.get(snp[0].split(".snp")[0])][5]) for snp in top]
+                             len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))/
+                       len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]) for snp in top]
+            z = [1 - ((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
+                      len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))**2)**.5 for snp in
+                 top]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
             fig, ax = plt.subplots()
