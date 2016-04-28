@@ -178,16 +178,18 @@ class AnnoteFinder(object):
             figmix, (axrna, axribo) = plt.subplots(1,2)
             axrna.boxplot(rna, labels=ticks) #, title=title + ": RNA-seq (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))), ylab=ylab, xlab=xlab
             axrna.set_title(title + ": RNA-seq (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna))))
-            axrna.set_ylabel(ylab)
-            axrna.set_xlabel(xlab)
+                            % sum((len(hetrna), len(homorna), len(refrna))),
+                            fontsize=10)
+            axrna.set_ylabel(ylab, fontsize=10)
+            axrna.set_xlabel(xlab, fontsize=10)
             axribo.boxplot(ribo, labels=ticks) #, title=title + ": Ribosome Profiling (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))) + '\n' + 'log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo)), ylab=ylab, xlab=xlab
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna)))
                              + '\n' + 'log2[alt/ref] = %f'
-                             % np.log2(np.mean(homoribo)/np.mean(refribo)))
-            axribo.set_ylabel(ylab)
-            axribo.set_xlabel(xlab)
+                             % np.log2(np.mean(homoribo)/np.mean(refribo)),
+                             fontsize=10)
+            axribo.set_ylabel(ylab, fontsize=10)
+            axribo.set_xlabel(xlab, fontsize=10)
             figmix.tight_layout()
             # figmix.show()
             # figrna = plt.figure()
