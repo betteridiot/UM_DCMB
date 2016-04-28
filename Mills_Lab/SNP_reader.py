@@ -326,19 +326,15 @@ def main():
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0].split(".snp")[0] for snp_IDs in top]
-            z_prune = sorted([qLook.get(id) for id in annotes], reverse=True)
             colors = [snp_ratio[2] for snp_ratio in top]
             percents = [p100[3] for p100 in top]
             print('{} minimum log2 ratio, {} maximum log2 ratio'.format(round(
                 min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
-            z = [10*((len(entry[2]) - len(entry[4])) / len(entry[5])) for entry in SNPs]
-            z = [z.pop(i) for i in z_prune]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
+            fig, ax = plt.subplots()
             a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
                        vmax=max(colors), s=z, linewidths=0.2, edgecolors='black', alpha=0.8)
             fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
