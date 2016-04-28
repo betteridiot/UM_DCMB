@@ -321,7 +321,7 @@ def main():
     elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
             # top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
             top = pickle.load(open(path_name + '/pkl/plotzip.pkl'))
-            top = [snp for snp in top if snp[2] > 0]
+            top = [snp for snp in top if snp[2] > 1]
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
             # sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
             qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
@@ -334,11 +334,14 @@ def main():
                 min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
+            z = [0.2* (len(SNPs[qLook.get(snp[0])][4]) -
+                             len(SNPs[qLook.get(snp[0])][4]))/
+                       len(SNPs[qLook.get(snp[0])][5]) for snp in top]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
             fig, ax = plt.subplots()
             a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
-                       vmax=max(colors), s=sizes, linewidths=0.2, edgecolors='black', alpha=0.8)
+                       vmax=max(colors), s=sizes, linewidths=z, edgecolors='black', alpha=0.8)
             fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
                          anchor=(0.0, 0.0), pad=0.01, drawedges=False,
                          label='log2(alt/ref)')
