@@ -256,12 +256,12 @@ def main():
     if not args.plot:
         set_list = snp_set(meta_catcher(path_name, 'metadata'), args.meta)
         snp_files = file_globber(path_name, set_list)
-        pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
+        # pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
         sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
             open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
         sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
                         snp[1][3:]) for snp in sampleGroup]
-        genos = []
+        SNPs = []
         for snp in sampleGroup:
             ID = snp[0]
             Lengths = snp[1]
@@ -276,13 +276,13 @@ def main():
             try:
                 if np.mean(ref, axis=0)[1] < np.mean(
                         het, axis=0)[1] < np.mean(alt, axis=0)[1]:
-                    genos.append([ID, Lengths, ref, het, alt, raw])
+                    SNPs.append([ID, Lengths, ref, het, alt, raw])
                 else:
                     pass
             except IndexError:
                 pass
 
-        SNPs = genos[:]
+        # SNPs = genos[:]
         qLook = {entry[0]: i for (i, entry) in enumerate(sampleGroup)}
         pickle.dump(SNPs,
                     open(path_name + "/pkl/SNPs.pkl", "wb"))
