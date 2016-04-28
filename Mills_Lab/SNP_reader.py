@@ -342,7 +342,7 @@ def main():
             #      for snp in top]
             z = [100 - (1/(len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) /
                              len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))) for snp in top]
-            z2 = [20 if len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) > 2 else 1 for snp in top]
+            z2 = [20 if len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) > 10 else 1 for snp in top]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
             fig, ax = plt.subplots()
