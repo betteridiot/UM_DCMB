@@ -334,11 +334,11 @@ def main():
                 min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
-            z = [1 - 1/((((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
+            z = [.05 - 1/((((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
                              len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))/
                        len(SNPs[qLook.get(snp[0].split(".snp")[0])][5]))**2)**.5) if ((((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
                              len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))/
-                       len(SNPs[qLook.get(snp[0].split(".snp")[0])][5]))**2)**.5) > 0 else 1.0
+                       len(SNPs[qLook.get(snp[0].split(".snp")[0])][5]))**2)**.5) > 0 else 0.05
                  for snp in top]
             # z = [.2 - ((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
             #           len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))**2)**.5 for snp in
@@ -347,7 +347,7 @@ def main():
             # Plots the points above, and can be used to tie in individual SNP IDs
             fig, ax = plt.subplots()
             a = ax.scatter(x, y, color=colors, cmap=plt.get_cmap('YlOrRd'), vmin=min(colors),
-                       vmax=max(colors), s=sizes, linewidths=.2, edgecolors='black', alpha=z)
+                       vmax=max(colors), s=sizes, linewidths=z, edgecolors='black', alpha=0.8)
             fig.colorbar(a, ticks=None, use_gridspec=False, shrink=0.3,
                          anchor=(0.0, 0.0), pad=0.01, drawedges=False,
                          label='log2(alt/ref)')
