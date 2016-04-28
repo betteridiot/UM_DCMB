@@ -326,6 +326,7 @@ def main():
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0].split(".snp")[0] for snp_IDs in top]
+            z_prune = sorted([qLook.get(id) for id in annotes], reverse=True)
             colors = [snp_ratio[2] for snp_ratio in top]
             percents = [p100[3] for p100 in top]
             print('{} minimum log2 ratio, {} maximum log2 ratio'.format(round(
@@ -333,6 +334,7 @@ def main():
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
             z = [(((len(entry[2]) - len(entry[4])) / len(entry[5]))**2)**.5 for entry in SNPs]
+            z = [z.pop(i) for i in z_prune]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
             fig = plt.figure()
