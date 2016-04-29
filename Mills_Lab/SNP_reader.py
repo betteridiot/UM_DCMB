@@ -241,18 +241,18 @@ def main():
     global sampleGroup
     global SNPs
     parser = argparse.ArgumentParser(description='Plots relevant SNPs to interactive scatterplot')
-    parser.add_argument('-d', action='store', dest='dir', help='/path/to/root/dir',
+    parser.add_argument('-d', action='store', dest='DIR', help='/path/to/root/dir',
                         metavar="dir", default='/home/mdsherm/Project/SNuPer_results')
-    parser.add_argument('--rna', action='store', dest='rna', type=float, metavar="%%",
+    parser.add_argument('--rna', action='store', dest='rna', type=float, metavar="FLOAT",
                         help='threshold for %% of RNA-seq FPKM', default=.5)
-    parser.add_argument('--ribo', action='store', dest='ribo', type=float, metavar="%%",
+    parser.add_argument('--ribo', action='store', dest='ribo', type=float, metavar="FLOAT",
                         help='threshold for %% of ribosomal profiling FPKM', default=.2)
-    parser.add_argument('-t', action='store', dest='top', type=int, metavar='int',
+    parser.add_argument('-t', action='store', dest='top', type=int, metavar='INT',
                         help='The number of top results based on log2 ratio of'
                              'homozygous alt vs homozygous ref', default=1000)
     parser.add_argument('--plot-only', action='store_true', dest='plot', default=False,
                         help='Use only with pre-compiled lists. Uses the root directory as path')
-    parser.add_argument('-a', action='store', dest='meta', type=float, metavar="%%",
+    parser.add_argument('-a', action='store', dest='meta', type=float, metavar="FLOAT",
                         help="Threshold for metadata cutoff", default=0.5)
     args = parser.parse_args()
     path_name = args.dir
