@@ -216,7 +216,7 @@ class AnnoteFinder(object):
             axribo.set_xlabel(xlab, fontsize=8)
             axnorm.boxplot(norm, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
                            usermedians=norm_median)
-            axnorm.set_title(title + ": Normalized Ribo (N=%d)/n   (masked for inf)"
+            axnorm.set_title(title + ": Normalized Ribo (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axnorm.set_ylabel(ylab, fontsize=8)
