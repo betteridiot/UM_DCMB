@@ -178,21 +178,21 @@ class AnnoteFinder(object):
             normref = np.asarray(
                 [sample[1]/ np.mean(refrna) for sample in SNPs[idx][2]], dtype=np.float64)
             rna = [refrna, hetrna, homorna]
-            rna_median = [np.median(rna[0]), np.median(rna[1]),
-                          np.median(rna[2])]
+            rna_median = [np.median(np.nan_to_num(rna[0])), np.median(np.nan_to_num(rna[1])),
+                          np.median(np.nan_to_num(rna[2]))]
             ribo = [refribo, hetribo, homoribo]
-            ribo_median = [np.median(ribo[0]), np.median(ribo[1]),
-                          np.median(ribo[2])]
+            ribo_median = [np.median(np.nan_to_num(ribo[0])), np.median(np.nan_to_num(ribo[1])),
+                          np.median(np.nan_to_num(ribo[2]))]
             norm = [normref, normhet, normalt]
-            norm_median = [np.median(norm[0]), np.median(norm[1]),
-                          np.median(norm[2])]
+            norm_median = [np.median(np.nan_to_num(norm[0])), np.median(np.nan_to_num(norm[1])),
+                          np.median(np.nan_to_num(norm[2]))]
 
             ticks = ["0|0 (n=%d)" % len(refrna),
                      "0|1 (n=%d)" % len(hetrna),
                      "1|1 (n=%d)" % len(homorna)]
             xlab = "Genotypes"
             ylab = "FPKM"
-            title = string
+            title = string + '/n' + 'log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo))
             figmix, (axrna, axribo, axnorm) = plt.subplots(1,3)
             axrna.boxplot(rna, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
                           usermedians=rna_median)
@@ -219,9 +219,9 @@ class AnnoteFinder(object):
                             fontsize=8)
             axnorm.set_ylabel(ylab, fontsize=8)
             axnorm.set_xlabel(xlab, fontsize=8)
-            plt.text(.5,1.1, 'log2[alt/ref] = %f'
-                             % np.log2(np.mean(homoribo)/np.mean(refribo)),
-                             fontsize=8)
+            # plt.text(.5,1.1, 'log2[alt/ref] = %f'
+            #                  % np.log2(np.mean(homoribo)/np.mean(refribo)),
+            #                  fontsize=8)
             plt.tight_layout()
             figmix.show()
 
