@@ -313,6 +313,8 @@ def main():
                     pass
             except IndexError:
                 pass
+        SNPs = [snp for snp in SNPs if snp[1] >= 30]
+        SNPs = [snp for snp in SNPs if min(len(snp[2]), len(snp[3]), len(snp[3])) >2]
 
         # SNPs = genos[:]
         # qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
