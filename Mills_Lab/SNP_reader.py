@@ -224,6 +224,7 @@ class AnnoteFinder(object):
             # plt.suptitle('log2[alt/ref] = %f'
             #                  % np.log2(np.mean(homoribo)/np.mean(refribo)),
             #                  fontsize=8)
+            plt.title(string)
             plt.tick_params(axis='both', labelsize=8)
             plt.tight_layout()
             figmix.show()
