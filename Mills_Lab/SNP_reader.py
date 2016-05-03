@@ -219,7 +219,7 @@ class AnnoteFinder(object):
                             fontsize=8)
             axnorm.set_ylabel(ylab, fontsize=8)
             axnorm.set_xlabel(xlab, fontsize=8)
-            figmix.figtext(.5,1.1, 'log2[alt/ref] = %f'
+            plt.text(.5,1.1, 'log2[alt/ref] = %f'
                              % np.log2(np.mean(homoribo)/np.mean(refribo)),
                              fontsize=8)
             plt.tight_layout()
