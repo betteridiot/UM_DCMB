@@ -165,16 +165,16 @@ class AnnoteFinder(object):
         global SNPs
         idx = qLook.get(string)
         if idx is not None:
-            hetrna = np.asarray([sample[0] for sample in SNPs[idx][3]])
-            hetribo = np.asarray([sample[1] for sample in SNPs[idx][3]])
+            hetrna = np.asarray([sample[0] for sample in SNPs[idx][3]], dtype=float)
+            hetribo = np.asarray([sample[1] for sample in SNPs[idx][3]], dtype=float)
             normhet = np.asarray(
                 [sample[1] / sample[0] for sample in SNPs[idx][3]])
-            homorna = np.asarray([sample[0] for sample in SNPs[idx][4]])
-            homoribo = np.asarray([sample[1] for sample in SNPs[idx][4]])
+            homorna = np.asarray([sample[0] for sample in SNPs[idx][4]], dtype=float)
+            homoribo = np.asarray([sample[1] for sample in SNPs[idx][4]], dtype=float)
             normalt = np.asarray(
                 [sample[1] / sample[0] for sample in SNPs[idx][4]])
-            refrna = np.asarray([sample[0] for sample in SNPs[idx][2]])
-            refribo = np.asarray([sample[1] for sample in SNPs[idx][2]])
+            refrna = np.asarray([sample[0] for sample in SNPs[idx][2]], dtype=float)
+            refribo = np.asarray([sample[1] for sample in SNPs[idx][2]], dtype=float)
             normref = np.asarray(
                 [sample[1]/sample[0] for sample in SNPs[idx][2]])
             rna = [refrna, hetrna, homorna]
@@ -195,7 +195,8 @@ class AnnoteFinder(object):
             axrna.set_xlabel(xlab, fontsize=8)
             axribo.boxplot(ribo, labels=ticks)
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna))))
+                            % sum((len(hetrna), len(homorna), len(refrna))),
+                             fontsize=8)
                              # + \
                              #  '\n' + 'log2[alt/ref] = %f'
                              # % np.log2(np.mean(homoribo)/np.mean(refribo)),
