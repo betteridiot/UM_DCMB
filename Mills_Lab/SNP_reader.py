@@ -165,18 +165,18 @@ class AnnoteFinder(object):
         global SNPs
         idx = qLook.get(string)
         if idx is not None:
-            hetrna = np.asarray([sample[0] for sample in SNPs[idx][3]], dtype=float)
-            hetribo = np.asarray([sample[1] for sample in SNPs[idx][3]], dtype=float)
+            hetrna = np.asarray([sample[0] for sample in SNPs[idx][3]], dtype=np.float64)
+            hetribo = np.asarray([sample[1] for sample in SNPs[idx][3]], dtype=np.float64)
             normhet = np.asarray(
                 [sample[1] / sample[0] for sample in SNPs[idx][3]])
-            homorna = np.asarray([sample[0] for sample in SNPs[idx][4]], dtype=float)
-            homoribo = np.asarray([sample[1] for sample in SNPs[idx][4]], dtype=float)
+            homorna = np.asarray([sample[0] for sample in SNPs[idx][4]], dtype=np.float64)
+            homoribo = np.asarray([sample[1] for sample in SNPs[idx][4]], dtype=np.float64)
             normalt = np.asarray(
                 [sample[1] / sample[0] for sample in SNPs[idx][4]])
-            refrna = np.asarray([sample[0] for sample in SNPs[idx][2]], dtype=float)
-            refribo = np.asarray([sample[1] for sample in SNPs[idx][2]], dtype=float)
+            refrna = np.asarray([sample[0] for sample in SNPs[idx][2]], dtype=np.float64)
+            refribo = np.asarray([sample[1] for sample in SNPs[idx][2]], dtype=np.float64)
             normref = np.asarray(
-                [sample[1]/sample[0] for sample in SNPs[idx][2]])
+                [sample[1]/sample[0] for sample in SNPs[idx][2]], dtype=np.float64)
             rna = [refrna, hetrna, homorna]
             ribo = [refribo, hetribo, homoribo]
             norm = [normref, normhet, normalt]
