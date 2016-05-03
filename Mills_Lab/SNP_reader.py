@@ -196,7 +196,7 @@ class AnnoteFinder(object):
             ylab = "FPKM"
             title = string + '/n' + 'log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo))
             figmix, (axrna, axribo, axnorm) = plt.subplots(1,3)
-            axrna.boxplot(rna, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
+            axrna.boxplot(rna, labels=ticks, showmeans=True, notch=True,
                           usermedians=rna_median)
             axrna.set_title(title + ": RNA-seq (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
@@ -205,7 +205,7 @@ class AnnoteFinder(object):
             axrna.set_xlabel(xlab, fontsize=8)
             plt.xticks(fontsize=8)
             plt.yticks(fontsize=8)
-            axribo.boxplot(ribo, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
+            axribo.boxplot(ribo, labels=ticks, showmeans=True, notch=True,
                            usermedians=ribo_median)
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
@@ -218,7 +218,7 @@ class AnnoteFinder(object):
             axribo.set_xlabel(xlab, fontsize=8)
             plt.xticks(fontsize=8)
             plt.yticks(fontsize=8)
-            axnorm.boxplot(norm, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
+            axnorm.boxplot(norm, labels=ticks, showmeans=True, notch=True,
                            usermedians=norm_median)
             axnorm.set_title(title + ": Normalized Ribo (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
