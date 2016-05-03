@@ -184,8 +184,8 @@ class AnnoteFinder(object):
             ribo_median = [np.median(ribo[0]), np.median(ribo[1]),
                           np.median(ribo[2])]
             norm = [normref, normhet, normalt]
-            norm_masker = ~np.isinf(norm)
-            masked_norm = norm[norm_masker]
+            norm_masker = [~np.isinf(norm[0]), ~np.isinf(norm[1]), ~np.isinf(norm[2])]
+            masked_norm = [norm[0][norm_masker[0]], norm[1][norm_masker[1]], norm[2][norm_masker[2]]]
             norm_median = [np.median(masked_norm[0]), np.median(masked_norm[1]),
                           np.median(masked_norm[2])]
 
@@ -216,7 +216,7 @@ class AnnoteFinder(object):
             axribo.set_xlabel(xlab, fontsize=8)
             axnorm.boxplot(norm, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
                            usermedians=norm_median)
-            axnorm.set_title(title + ": Normalized Ribo (N=%d) /n masked for inf"
+            axnorm.set_title(title + ": Normalized Ribo (N=%d)/n   (masked for inf)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axnorm.set_ylabel(ylab, fontsize=8)
