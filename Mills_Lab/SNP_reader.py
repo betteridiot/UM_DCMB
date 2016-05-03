@@ -194,18 +194,18 @@ class AnnoteFinder(object):
                      "1|1 (n=%d)" % len(homorna)]
             xlab = "Genotypes"
             ylab = "FPKM"
-            title = string + '/n' + 'log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo))
+            title = string + ' log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo))
             figmix, (axrna, axribo, axnorm) = plt.subplots(1,3)
             axrna.boxplot(rna, labels=ticks,  whis=(5, 95),
                           usermedians=rna_median)
-            axrna.set_title(title + ": RNA-seq (N=%d)"
+            axrna.set_title("RNA-seq (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axrna.set_ylabel(ylab, fontsize=8)
             axrna.set_xlabel(xlab, fontsize=8)
             axribo.boxplot(ribo, labels=ticks, whis=(5, 95),
                            usermedians=ribo_median)
-            axribo.set_title(title + ": Ribosome Profiling (N=%d)"
+            axribo.set_title("Ribosome Profiling (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                              fontsize=8)
                              # + \
@@ -216,14 +216,14 @@ class AnnoteFinder(object):
             axribo.set_xlabel(xlab, fontsize=8)
             axnorm.boxplot(norm, labels=ticks, whis=(5, 95),
                            usermedians=norm_median)
-            axnorm.set_title(title + ": Normalized Ribo (N=%d)"
+            axnorm.set_title("Normalized Ribo (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axnorm.set_ylabel(ylab, fontsize=8)
             axnorm.set_xlabel(xlab, fontsize=8)
-            plt.suptitle('log2[alt/ref] = %f'
-                             % np.log2(np.mean(homoribo)/np.mean(refribo)),
-                             fontsize=8)
+            # plt.suptitle('log2[alt/ref] = %f'
+            #                  % np.log2(np.mean(homoribo)/np.mean(refribo)),
+            #                  fontsize=8)
             plt.tick_params(axis='both', labelsize=8)
             plt.tight_layout()
             figmix.show()
