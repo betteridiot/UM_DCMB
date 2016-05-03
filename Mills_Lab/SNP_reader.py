@@ -203,6 +203,8 @@ class AnnoteFinder(object):
                             fontsize=8)
             axrna.set_ylabel(ylab, fontsize=8)
             axrna.set_xlabel(xlab, fontsize=8)
+            plt.xticks(fontsize=8)
+            plt.yticks(fontsize=8)
             axribo.boxplot(ribo, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
                            usermedians=ribo_median)
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
@@ -214,16 +216,20 @@ class AnnoteFinder(object):
                              # fontsize=8)
             axribo.set_ylabel(ylab, fontsize=8)
             axribo.set_xlabel(xlab, fontsize=8)
+            plt.xticks(fontsize=8)
+            plt.yticks(fontsize=8)
             axnorm.boxplot(norm, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
                            usermedians=norm_median)
             axnorm.set_title(title + ": Normalized Ribo (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axnorm.set_ylabel(ylab, fontsize=8)
+            plt.xticks(fontsize=8)
+            plt.yticks(fontsize=8)
             axnorm.set_xlabel(xlab, fontsize=8)
-            # plt.text(.5,1.1, 'log2[alt/ref] = %f'
-            #                  % np.log2(np.mean(homoribo)/np.mean(refribo)),
-            #                  fontsize=8)
+            plt.suptitle('log2[alt/ref] = %f'
+                             % np.log2(np.mean(homoribo)/np.mean(refribo)),
+                             fontsize=8)
             plt.tight_layout()
             figmix.show()
 
