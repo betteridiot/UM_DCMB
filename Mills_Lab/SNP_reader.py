@@ -176,10 +176,17 @@ class AnnoteFinder(object):
             refrna = np.asarray([sample[0] for sample in SNPs[idx][2]], dtype=np.float64)
             refribo = np.asarray([sample[1] for sample in SNPs[idx][2]], dtype=np.float64)
             normref = np.asarray(
-                [sample[1]/np.mean(refrna) for sample in SNPs[idx][2]], dtype=np.float64)
+                [sample[1]/ np.mean(refrna) for sample in SNPs[idx][2]], dtype=np.float64)
             rna = [refrna, hetrna, homorna]
+            rna_median = [np.median(rna[0]), np.median(rna[1]),
+                          np.median(rna[2])]
             ribo = [refribo, hetribo, homoribo]
+            ribo_median = [np.median(ribo[0]), np.median(ribo[1]),
+                          np.median(ribo[2])]
             norm = [normref, normhet, normalt]
+            norm_median = [np.median(norm[0]), np.median(norm[1]),
+                          np.median(norm[2])]
+
             ticks = ["0|0 (n=%d)" % len(refrna),
                      "0|1 (n=%d)" % len(hetrna),
                      "1|1 (n=%d)" % len(homorna)]
@@ -187,13 +194,15 @@ class AnnoteFinder(object):
             ylab = "FPKM"
             title = string
             figmix, (axrna, axribo, axnorm) = plt.subplots(1,3)
-            axrna.boxplot(rna, labels=ticks)
+            axrna.boxplot(rna, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
+                          usermedians=rna_median)
             axrna.set_title(title + ": RNA-seq (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axrna.set_ylabel(ylab, fontsize=8)
             axrna.set_xlabel(xlab, fontsize=8)
-            axribo.boxplot(ribo, labels=ticks)
+            axribo.boxplot(ribo, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
+                           usermedians=ribo_median)
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                              fontsize=8)
@@ -203,13 +212,14 @@ class AnnoteFinder(object):
                              # fontsize=8)
             axribo.set_ylabel(ylab, fontsize=8)
             axribo.set_xlabel(xlab, fontsize=8)
-            axnorm.boxplot(norm, labels=ticks)
+            axnorm.boxplot(norm, labels=ticks, showmeans=True, notch=True, whis=[5, 95],
+                           usermedians=norm_median)
             axnorm.set_title(title + ": Normalized Ribo (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axnorm.set_ylabel(ylab, fontsize=8)
             axnorm.set_xlabel(xlab, fontsize=8)
-            plt.figtext(.5,1.1, 'log2[alt/ref] = %f'
+            figmix.figtext(.5,1.1, 'log2[alt/ref] = %f'
                              % np.log2(np.mean(homoribo)/np.mean(refribo)),
                              fontsize=8)
             plt.tight_layout()
