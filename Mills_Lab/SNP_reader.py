@@ -95,6 +95,9 @@ class CommentedFile:
             line = self.f.next()
         if line.startswith("##"):
             self.length = int(line.split()[4])-int(line.split()[3])
+            # hopefully skips over SNPs that are too small for Spectre to analyze
+            if self.length < 30:
+                pass
         while line.startswith(self.commentstring):
             line = self.f.next()
         return line
@@ -164,46 +167,52 @@ class AnnoteFinder(object):
         if idx is not None:
             hetrna = np.asarray([sample[0] for sample in SNPs[idx][3]])
             hetribo = np.asarray([sample[1] for sample in SNPs[idx][3]])
+            normhet = np.asarray(
+                [sample[1] / sample[0] for sample in SNPs[idx][3]])
             homorna = np.asarray([sample[0] for sample in SNPs[idx][4]])
             homoribo = np.asarray([sample[1] for sample in SNPs[idx][4]])
+            normalt = np.asarray(
+                [sample[1] / sample[0] for sample in SNPs[idx][4]])
             refrna = np.asarray([sample[0] for sample in SNPs[idx][2]])
             refribo = np.asarray([sample[1] for sample in SNPs[idx][2]])
+            normref = np.asarray(
+                [sample[1]/sample[0] for sample in SNPs[idx][2]])
             rna = [refrna, hetrna, homorna]
             ribo = [refribo, hetribo, homoribo]
+            norm = [normref, normhet, normalt]
             ticks = ["0|0 (n=%d)" % len(refrna),
                      "0|1 (n=%d)" % len(hetrna),
                      "1|1 (n=%d)" % len(homorna)]
             xlab = "Genotypes"
             ylab = "FPKM"
             title = string
-            figmix, (axrna, axribo) = plt.subplots(1,2)
-            axrna.boxplot(rna, labels=ticks) #, title=title + ": RNA-seq (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))), ylab=ylab, xlab=xlab
+            figmix, (axrna, axribo, axnorm) = plt.subplots(1,3)
+            axrna.boxplot(rna, labels=ticks)
             axrna.set_title(title + ": RNA-seq (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
-                            fontsize=10)
-            axrna.set_ylabel(ylab, fontsize=10)
-            axrna.set_xlabel(xlab, fontsize=10)
-            axribo.boxplot(ribo, labels=ticks) #, title=title + ": Ribosome Profiling (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))) + '\n' + 'log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo)), ylab=ylab, xlab=xlab
+                            fontsize=8)
+            axrna.set_ylabel(ylab, fontsize=8)
+            axrna.set_xlabel(xlab, fontsize=8)
+            axribo.boxplot(ribo, labels=ticks)
             axribo.set_title(title + ": Ribosome Profiling (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna)))
-                             + '\n' + 'log2[alt/ref] = %f'
+                            % sum((len(hetrna), len(homorna), len(refrna))))
+                             # + \
+                             #  '\n' + 'log2[alt/ref] = %f'
+                             # % np.log2(np.mean(homoribo)/np.mean(refribo)),
+                             # fontsize=8)
+            axribo.set_ylabel(ylab, fontsize=8)
+            axribo.set_xlabel(xlab, fontsize=8)
+            axnorm.boxplot(norm, labels=ticks)
+            axnorm.set_title(title + ": Normalized Ribo (N=%d)"
+                            % sum((len(hetrna), len(homorna), len(refrna))),
+                            fontsize=8)
+            axnorm.set_ylabel(ylab, fontsize=8)
+            axnorm.set_xlabel(xlab, fontsize=8)
+            plt.figtext(.5,1.1, 'log2[alt/ref] = %f'
                              % np.log2(np.mean(homoribo)/np.mean(refribo)),
-                             fontsize=10)
-            axribo.set_ylabel(ylab, fontsize=10)
-            axribo.set_xlabel(xlab, fontsize=10)
+                             fontsize=8)
             plt.tight_layout()
             figmix.show()
-            # figrna = plt.figure()
-            # axrna = figrna.add_subplot(111)
-            # axrna.boxplot(rna, labels=ticks)
-
-
-            # figrna.show()
-            # figribo = plt.figure()
-            # axribo = figribo.add_subplot(111)
-            # axribo.boxplot(ribo, labels=ticks)
-
-            # figribo.show()
 
     def drawAnnote(self, ax, x, y, annote):
         """
@@ -258,14 +267,17 @@ def main():
     path_name = args.dir
     rna_thresh = round(args.rna,1)
     ribo_thresh = round(args.ribo,1)
+    ignored_states = np.seterr(divide='ignore', invalid='ignore')
     if not args.plot:
         set_list = snp_set(meta_catcher(path_name, 'metadata'), args.meta)
         snp_files = file_globber(path_name, set_list)
         # pickle.dump(snp_files, open(path_name + "/pkl/snp_files.pkl", "wb"))
         sampleGroup = [(snp.rpartition("SNPs/")[-1], [row for row in csv.reader(
             open(snp, "rb"), delimiter='\t')]) for snp in snp_files]
-        sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]),
-                        snp[1][3:]) for snp in sampleGroup]
+        #
+        sampleGroup = [(snp[0], int(snp[1][1][4])-int(snp[1][1][3]) + 1,
+                        snp[1][3:]) for snp in sampleGroup if
+                       int(snp[1][1][4])-int(snp[1][1][3]) + 1 >= 30]
         SNPs = []
         for snp in sampleGroup:
             ID = snp[0]
@@ -334,15 +346,6 @@ def main():
                 min(colors),4), round(max(colors),4)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
-            # z = [10 - 1/((((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
-            #                  len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))/
-            #            len(SNPs[qLook.get(snp[0].split(".snp")[0])][5]))**2)**.5) if ((((len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) -
-            #                  len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))/
-            #            len(SNPs[qLook.get(snp[0].split(".snp")[0])][5]))**2)**.5) > 0 else 10
-            #      for snp in top]
-            # z = [100 - (1/(len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) /
-            #                  len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]))) for snp in top]
-            # z2 = [25 if len(SNPs[qLook.get(snp[0].split(".snp")[0])][4]) > 10 and len(SNPs[qLook.get(snp[0].split(".snp")[0])][2]) > 10 else .5 for snp in top]
 
             # Plots the points above, and can be used to tie in individual SNP IDs
             fig, ax = plt.subplots()
