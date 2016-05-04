@@ -307,8 +307,8 @@ def main():
                 pass
         SNPs = [snp for snp in SNPs if snp[1] >= 30]
         SNPs = [snp for snp in SNPs if min(len(snp[2]), len(snp[3]), len(snp[4])) > 2]
-
-        # SNPs = genos[:]
+        SNPs = [snp for snp in SNPs if np.log2(
+            np.mean(snp[4], axis=0)[1] / np.mean(snp[2], axis=0)[1]) >= 2]
         qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
         pickle.dump(SNPs,
                     open(path_name + "/pkl/SNPs.pkl", "wb"))
@@ -355,6 +355,7 @@ def main():
             percents = [p100[3] for p100 in top]
             print('{} minimum log2 ratio, {} maximum log2 ratio'.format(round(
                 min(colors),4), round(max(colors),4)))
+            print('{} maximum # of SNPs found with given cuttoffs'.format(len(SNPs)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
 
