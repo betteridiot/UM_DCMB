@@ -341,6 +341,7 @@ def main():
         print("Exiting")
     elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
             top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
+            top = [snp for snp in top if snp[2] >= 0]
             # top = pickle.load(open(path_name + '/pkl/plotzip.pkl'))
             # top = [snp for snp in top if snp[2] > 1][:100]
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
