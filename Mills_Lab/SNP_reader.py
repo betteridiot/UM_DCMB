@@ -197,14 +197,14 @@ class AnnoteFinder(object):
             title = string + ' log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo))
             figmix, (axrna, axribo, axnorm) = plt.subplots(1,3)
 
-            def boxplotter(axis, title, data, median):
+            def boxplotter(axis, name, data, median):
                 axis.boxplot(data,
                              labels=ticks,
                              whis=[5,95],
                              notch=False,
                              showmeans=True,
                              usermedians=median)
-                axis.set_title(title=title, fontsize=8)
+                axis.set_title(name, fontsize=8)
                 axis.set_ylabel(ylab, fontsize=8)
                 axis.set_xlabel(xlab, fontsize=8)
 
