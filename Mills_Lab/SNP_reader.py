@@ -356,7 +356,8 @@ def main():
             percents = [p100[3] for p100 in top]
             print('{} minimum log2 ratio, {} maximum log2 ratio'.format(round(
                 min(colors),4), round(max(colors),4)))
-            print('{} maximum # of SNPs found with given cuttoffs'.format(len(SNPs)))
+            print('{} points above log2 0 plotted from {} maximum SNP-ORFs'
+                  ' found with given cutoffs'.format(len(top), len(SNPs)))
             x = [snp[0] for snp in percents]
             y = [snp[1] for snp in percents]
 
