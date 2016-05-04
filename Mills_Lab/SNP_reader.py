@@ -196,14 +196,14 @@ class AnnoteFinder(object):
             ylab = "FPKM"
             title = string + ' log2[alt/ref] = %f' % np.log2(np.mean(homoribo)/np.mean(refribo))
             figmix, (axrna, axribo, axnorm) = plt.subplots(1,3)
-            axrna.boxplot(rna, labels=ticks,  whis=(5, 95),
+            axrna.boxplot(rna, labels=ticks,  whis=[5, 95], notch=True, showmeans=True,
                           usermedians=rna_median)
             axrna.set_title("RNA-seq (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
                             fontsize=8)
             axrna.set_ylabel(ylab, fontsize=8)
             axrna.set_xlabel(xlab, fontsize=8)
-            axribo.boxplot(ribo, labels=ticks, whis=(5, 95),
+            axribo.boxplot(ribo, labels=ticks, whis=[5, 95], notch=True, showmeans=True,
                            usermedians=ribo_median)
             axribo.set_title("Ribosome Profiling (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
@@ -214,7 +214,7 @@ class AnnoteFinder(object):
                              # fontsize=8)
             axribo.set_ylabel(ylab, fontsize=8)
             axribo.set_xlabel(xlab, fontsize=8)
-            axnorm.boxplot(norm, labels=ticks, whis=(5, 95),
+            axnorm.boxplot(norm, labels=ticks, whis=[5, 95], notch=True, showmeans=True,
                            usermedians=norm_median)
             axnorm.set_title("Normalized Ribo (N=%d)"
                             % sum((len(hetrna), len(homorna), len(refrna))),
@@ -317,7 +317,7 @@ def main():
         SNPs = [snp for snp in SNPs if min(len(snp[2]), len(snp[3]), len(snp[3])) >2]
 
         # SNPs = genos[:]
-        # qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
+        qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
         pickle.dump(SNPs,
                     open(path_name + "/pkl/SNPs.pkl", "wb"))
         pickle.dump(sampleGroup,
