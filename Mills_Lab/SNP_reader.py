@@ -314,7 +314,7 @@ def main():
             except IndexError:
                 pass
         SNPs = [snp for snp in SNPs if snp[1] >= 30]
-        SNPs = [snp for snp in SNPs if min(len(snp[2]), len(snp[3]), len(snp[3])) >2]
+        SNPs = [snp for snp in SNPs if min(len(snp[2]), len(snp[3]), len(snp[4])) > 2]
 
         # SNPs = genos[:]
         qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
@@ -353,7 +353,7 @@ def main():
             # top = [snp for snp in top if snp[2] > 1][:100]
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
             # sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
-            qLook = {entry[0].split(".snp")[0]: i for (i, entry) in enumerate(SNPs)}
+            qLook = pickle.load(open(path_name + "/pkl/qLook.pkl", "rb"))
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0].split(".snp")[0] for snp_IDs in top]
