@@ -208,14 +208,11 @@ class AnnoteFinder(object):
                 axis.set_ylabel(ylab, fontsize=8)
                 axis.set_xlabel(xlab, fontsize=8)
 
-            boxplotter(axrna, "RNA-seq (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna))),
+            boxplotter(axrna, "RNA-seq (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))),
                        rna, rna_median)
-            boxplotter(axribo, "Ribosome Profiling (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna))),
+            boxplotter(axribo, "Ribosome Profiling (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))),
                        ribo, ribo_median)
-            boxplotter(axnorm, "Normalized Ribo (N=%d)"
-                            % sum((len(hetrna), len(homorna), len(refrna))),
+            boxplotter(axnorm, "Normalized Ribo (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))),
                        norm, norm_median)
             # axrna.boxplot(rna, labels=ticks,  whis=[5, 95], notch=True, showmeans=True,
             #               usermedians=rna_median)
