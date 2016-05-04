@@ -214,45 +214,11 @@ class AnnoteFinder(object):
                        ribo, ribo_median)
             boxplotter(axnorm, "Normalized Ribo (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))),
                        norm, norm_median)
-            # axrna.boxplot(rna, labels=ticks,  whis=[5, 95], notch=True, showmeans=True,
-            #               usermedians=rna_median)
-            # axrna.set_title("RNA-seq (N=%d)"
-            #                 % sum((len(hetrna), len(homorna), len(refrna))),
-            #                 fontsize=8)
-            # axrna.set_ylabel(ylab, fontsize=8)
-            # axrna.set_xlabel(xlab, fontsize=8)
-            # axribo.boxplot(ribo, labels=ticks,
-            #                whis=[5, 95],
-            #                notch=True,
-            #                showmeans=True,
-            #                usermedians=ribo_median)
-            # axribo.set_title("Ribosome Profiling (N=%d)"
-            #                 % sum((len(hetrna), len(homorna), len(refrna))),
-            #                  fontsize=8)
-            #                  # + \
-            #                  #  '\n' + 'log2[alt/ref] = %f'
-            #                  # % np.log2(np.mean(homoribo)/np.mean(refribo)),
-            #                  # fontsize=8)
-            # axribo.set_ylabel(ylab, fontsize=8)
-            # axribo.set_xlabel(xlab, fontsize=8)
-            # axnorm.boxplot(norm, labels=ticks,
-            #                whis=[5, 95],
-            #                # notch=True,
-            #                showmeans=True,
-            #                usermedians=norm_median)
-            # axnorm.set_title("Normalized Ribo (N=%d)"
-            #                 % sum((len(hetrna), len(homorna), len(refrna))),
-            #                 fontsize=8)
-            # axnorm.set_ylabel(ylab, fontsize=8)
-            # axnorm.set_xlabel(xlab, fontsize=8)
-            # plt.suptitle('log2[alt/ref] = %f'
-            #                  % np.log2(np.mean(homoribo)/np.mean(refribo)),
-            #                  fontsize=8)
             figmix.suptitle(title, fontsize=8)
             plt.tick_params(axis='both', labelsize=8)
             plt.tight_layout()
-            figManager = plt.get_current_fig_manager()
-            figManager.window.showMaximized()
+            # figManager = plt.get_current_fig_manager()
+            # figManager.window.showMaximized()
             figmix.show()
 
     def drawAnnote(self, ax, x, y, annote):
@@ -378,8 +344,10 @@ def main():
             # top = pickle.load(open(path_name + '/pkl/plotzip.pkl'))
             # top = [snp for snp in top if snp[2] > 1][:100]
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
-            # sampleGroup = pickle.load(open(path_name + "/pkl/SG.pkl", "rb"))
-            qLook = pickle.load(open(path_name + "/pkl/qLook.pkl", "rb"))
+            SNPs = [snp for snp in SNPs if np.mean(snp[4][1])/np.mean(snp[2][1]) < 2]
+            qLook = {entry[0].split(".snp")[0]: i for (i, entry) in
+                     enumerate(SNPs)}
+            # qLook = pickle.load(open(path_name + "/pkl/qLook.pkl", "rb"))
             SNP_len = [length[1] for length in top]
             sizes = (SNP_len / np.mean(SNP_len)) * 10
             annotes = [snp_IDs[0].split(".snp")[0] for snp_IDs in top]
