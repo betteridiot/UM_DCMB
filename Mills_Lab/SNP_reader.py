@@ -344,7 +344,7 @@ def main():
             # top = pickle.load(open(path_name + '/pkl/plotzip.pkl'))
             # top = [snp for snp in top if snp[2] > 1][:100]
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
-            SNPs = [snp for snp in SNPs if np.mean(snp[4])/np.mean(snp[2]) < 2]
+            SNPs = [snp for snp in SNPs if np.log2(np.mean(snp[4], axis=0)[1]/np.mean(snp[2], axis=0)[1]) >= 2]
             qLook = {entry[0].split(".snp")[0]: i for (i, entry) in
                      enumerate(SNPs)}
             # qLook = pickle.load(open(path_name + "/pkl/qLook.pkl", "rb"))
