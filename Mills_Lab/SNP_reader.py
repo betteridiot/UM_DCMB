@@ -252,7 +252,7 @@ class AnnoteFinder(object):
             plt.tick_params(axis='both', labelsize=8)
             plt.tight_layout()
             figManager = plt.get_current_fig_manager()
-            figManager.window.showFullScreen()
+            figManager.window.showNormal()
             figmix.show()
 
     def drawAnnote(self, ax, x, y, annote):
