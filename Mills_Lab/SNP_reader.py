@@ -207,6 +207,10 @@ class AnnoteFinder(object):
                 axis.set_title(name, fontsize=8)
                 axis.set_ylabel(ylab, fontsize=8)
                 axis.set_xlabel(xlab, fontsize=8)
+                if axis is 'axnorm':
+                    print('{} mean FPKM ref'.format(np.mean(data[1])),
+                          '{} mean FPKM het'.format(np.mean(data[2])),
+                          '{} mean FPKM alt'.format(np.mean(data[3])))
 
             boxplotter(axrna, "RNA-seq (N=%d)" % sum((len(hetrna), len(homorna), len(refrna))),
                        rna, rna_median)
