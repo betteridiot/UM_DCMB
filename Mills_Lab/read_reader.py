@@ -41,11 +41,11 @@ def main():
                     ribo_cross.update({ribo_bam:row.split()[1]})
 
         rna = [(rna_cross.get(f) , int(os.popen(
-            "samtools view -q 10 {} {}:{} | wc -l".format(f, snp_chrom, region)).rstrip())
+            "samtools view -q 10 {} {}:{} | wc -l".format(f, snp_chrom, region)).read().rstrip())
                 ) for f in rna_bams]
         rna_noreps = [(sample[0],) for sample in rna]
         ribo = [(ribo_cross.get(f) , int(os.popen(
-            "samtools view -q 10 {} {}:{} | wc -l".format(f, snp_chrom, region)))
+            "samtools view -q 10 {} {}:{} | wc -l".format(f, snp_chrom, region)).read().rstrip())
                  ) for f in ribo_cross]
 
         mix_cross = [(rnsample[0], snp_geno.get(rnsample[0]), rnsample[1], rbsample[1]) for rnsample in rna
