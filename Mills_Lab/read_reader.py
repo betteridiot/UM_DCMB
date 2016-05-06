@@ -76,10 +76,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-a = [('asdf', 7), ('asdf', 9), ('jkl;', 8)]
-reduct = []
-for b in  range(len(a)): print(a[b])
-
-

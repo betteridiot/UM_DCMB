@@ -344,9 +344,13 @@ def main():
         print("No precompiled list present!")
         print("Exiting")
     elif args.plot and os.path.isfile(path_name + '/pkl/top_%d.pkl' % args.top):
-            top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
-            top = [snp for snp in top if snp[2] >= 0]
-            # top = pickle.load(open(path_name + '/pkl/plotzip.pkl'))
+            # top = pickle.load(open(path_name + '/pkl/top_%d.pkl' % args.top))
+            mad_hatter = pickle.load(open(path_name + '/pkl/mad_hatter.pkl'))
+            # top = [snp for snp in top if snp[2] >= 0]
+            top = pickle.load(open(path_name + '/pkl/plotzip.pkl'))
+            toplook = {entry[0]: i for (i, entry) in enumerate(top)}
+            mad_idxer = [toplook.get(snp[0]) for snp in mad_hatter]
+            top = [top[i] for i in mad_idxer]
             # top = [snp for snp in top if snp[2] > 1][:100]
             SNPs = pickle.load(open(path_name + "/pkl/SNPs.pkl", "rb"))
             SNPs = [snp for snp in SNPs if np.log2(np.mean(snp[4], axis=0)[1]/np.mean(snp[2], axis=0)[1]) >= 2]
