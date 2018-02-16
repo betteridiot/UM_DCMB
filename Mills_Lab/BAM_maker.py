@@ -4,13 +4,13 @@ import glob
 import csv
 import dill as pickle
 
-RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
-riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
-outDir = '/home/mdsherm/Project/UM_DCMB/Mills_Lab/pkl/'
+RNADir = '~/Rotation/RNA_fq/tophat_hg19'
+riboDir = '~/Rotation/ribosomal/bwa_alignment'
+outDir = '~/Project/UM_DCMB/Mills_Lab/pkl/'
 
 # Adding in ribosome sample name to SRA ID file
 ribosamples = []
-with open('/home/mdsherm/Project/ribosamplescross') as ribo:
+with open('~/Project/ribosamplescross') as ribo:
     reader = csv.reader(ribo, delimiter='\t')
     ribosamples.extend([row for row in reader])
 
@@ -24,7 +24,7 @@ for dir, _, _ in os.walk(os.getcwd()):
 os.chdir(riboDir)
 for dir, _, _ in os.walk(os.getcwd()):
     Ribobams.extend(glob.glob(os.path.join(dir, "*sort.bam")))
-with open("/home/mdsherm/Project/RNAsamples", 'r') as rnasamples:
+with open("~/Project/RNAsamples", 'r') as rnasamples:
     samplenames = rnasamples.read().splitlines()
 RNAsamp_crossref = [(name, [entry for entry in RNAbams if name in entry]) for name in samplenames]
 Ribosamp_crossref = [(name[1], [entry for entry in Ribobams if name[0] in entry]) for name in ribosamples]
