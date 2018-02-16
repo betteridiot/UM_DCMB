@@ -33,21 +33,21 @@ startTime, startasc = time.time(), time.asctime()
 parser = argparse.ArgumentParser(description='Finds novel ORFs dues to SNPs')
 # define where the reference sequence is
 parser.add_argument('-r', action='store', dest='ref', help='Directory of reference chromosomes',
-                    default='/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes')
+                    default='~/Project/Reference/hg19/Sequence/Chromosomes')
 # define what VCF file you will be working from
 parser.add_argument('-v', action='store', dest='vcf', help='Path/to/<vcf.gz>',
-                    default='/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz')
+                    default='~/Project/YRI_vcfsubsets/filteredGenotypeVCF/unannotatedchr22.vcf.gz')
 # how many nucleotides do you want to look upstream and downstream of potential ORFs
 parser.add_argument('-t', action='store', dest='threshold', type=int, help='Up/downstream threshold', default=3000)
 # Define your output filename and directory
 parser.add_argument('-o', action='store', dest='output', help='Set output path',
-                    default='/home/mdsherm/Project/SNuPer_results/pythonTest/')
+                    default='~/Project/SNuPer_results/pythonTest/')
 # Where are the ribosome profiling BAM files
 parser.add_argument('--ribosome', action='store', dest='ribo', help='Directory of Ribosomal BAM files',
-                    default='/home/mdsherm/Rotation/ribosomal/bwa_alignment')
+                    default='~Rotation/ribosomal/bwa_alignment')
 # Where are the RNA-seq BAM files
 parser.add_argument('--rna', action='store', dest='rna', help='Directory of RNA BAM files',
-                    default='/home/mdsherm/Rotation/RNA_fq/tophat_hg19')
+                    default='~/Rotation/RNA_fq/tophat_hg19')
 parser.add_argument('--alternative', action='store_true', help='Use alternative start codon GTG', default='False')
 args = parser.parse_args()
 vcf = args.vcf
@@ -56,13 +56,6 @@ RNADir = args.rna
 outDir = args.output
 reference = args.ref
 threshold = args.threshold
-# reference = '/home/mdsherm/Project/Reference/hg19/Sequence/Chromosomes'
-# vcf = '/home/mdsherm/Project/YRI_vcfsubsets/filteredGenotypeVCF/testing_smll.vcf.gz'
-# RNADir = '/home/mdsherm/Rotation/RNA_fq/tophat_hg19'
-# riboDir = '/home/mdsherm/Rotation/ribosomal/bwa_alignment'
-# outDir = '/home/mdsherm/Project/SNuPer_results/pythonTest/'
-# threshold = 3000
-# orfcount = 0  # use when debugging
 # ARGPARSE END
 
 # CODONS START
@@ -80,7 +73,7 @@ negStart = ("CAT",)
 
 
 list_files = ["RNAsamp_crossref", "Ribosamp_crossref", "RNAbams_dict", "Ribobams_dict"]
-bamDir = "/home/mdsherm/Project/UM_DCMB/Mills_Lab/pkl/"
+bamDir = "~/Project/UM_DCMB/Mills_Lab/pkl/"
 for name in list_files:
     with open('%s%s.pkl' % (bamDir, name), 'rb') as f:
         n = name
