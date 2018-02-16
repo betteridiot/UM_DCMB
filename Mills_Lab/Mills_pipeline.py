@@ -6,8 +6,6 @@ import gzip
 import re
 
 infile1, infile2, outfile2, outfile3 = sys.argv[1:]
-#/mnt/EXT/Mills-scratch/datasets/1000genomes/ftp/release/20130502/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz; reference file, /mnt/EXT/Mills-data/yifwang/human_reference/hg37_ucsc; #upstream of existing CAT; Inside an existing CAT; New One (respectively)
-
 
 outf1 = open(outfile1,'w')
 print >> outf1,"\t".join(["New_created_CAT","Existing_Downstream_CAT"])
